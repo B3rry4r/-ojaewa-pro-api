@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\OrderController as APIOrderController;
 use App\Http\Controllers\API\ProductController as APIProductController;
 use App\Http\Controllers\API\ReviewController as APIReviewController;
+use App\Http\Controllers\API\BusinessProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
@@ -53,5 +54,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('reviews')->group(function () {
         Route::post('/', [APIReviewController::class, 'store']);
         Route::get('/{type}/{id}', [APIReviewController::class, 'byEntity']);
+    });
+    
+    // Business Profile endpoints
+    Route::prefix('business')->group(function () {
+        Route::get('/', [BusinessProfileController::class, 'index']);
+        Route::post('/', [BusinessProfileController::class, 'store']);
+        Route::get('/{id}', [BusinessProfileController::class, 'show']);
+        Route::put('/{id}', [BusinessProfileController::class, 'update']);
+        Route::delete('/{id}', [BusinessProfileController::class, 'destroy']);
+        Route::patch('/{id}/deactivate', [BusinessProfileController::class, 'deactivate']);
+        Route::post('/{id}/upload', [BusinessProfileController::class, 'upload']);
     });
 });
