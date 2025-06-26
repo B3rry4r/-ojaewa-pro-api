@@ -16,10 +16,13 @@ class DatabaseSeeder extends Seeder
         // Create 5 fake users
         User::factory(5)->create();
 
-        // Create admin
+        // Create admin and other records
         $this->call([
             AdminSeeder::class,
-            SellerProfileSeeder::class,
+            SellerProfileSeeder::class, 
+            ProductSeeder::class,
+            OrderSeeder::class,
+            ReviewSeeder::class,
         ]);
     }
 }
