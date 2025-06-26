@@ -1,0 +1,316 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Oja Ewa Auth API",
+    "version": "1.0.0",
+    "description": "Authentication endpoints grouped by **User Auth**, **Admin Auth**, and **Seller Profile**"
+  },
+  "servers": [
+    {
+      "url": "http://localhost/api",
+      "description": "Local dev server"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": ["User Auth"],
+        "summary": "User registration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegister"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/AuthToken"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["User Auth"],
+        "summary": "User login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UserLogin"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/AuthToken"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/password/forgot": {
+      "post": {
+        "tags": ["User Auth"],
+        "summary": "Send reset link",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/EmailOnly"}
+            }
+          }
+        },
+        "responses": {"200": {"description": "Link sent"}}
+      }
+    },
+    "/password/reset": {
+      "post": {
+        "tags": ["User Auth"],
+        "summary": "Reset password",
+        "requestBody": {"required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PasswordReset"}}}},
+        "responses": {"200": {"description": "Password reset"}}
+      }
+    },
+    "/oauth/google": {
+      "post": {
+        "tags": ["User Auth"],
+        "summary": "Google OAuth login",
+        "requestBody": {"required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/GoogleToken"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthTokenNeedPhone"}}}}}
+      }
+    },
+    "/admin/login": {
+      "post": {
+        "tags": ["Admin Auth"],
+        "summary": "Admin login",
+        "requestBody": {"required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserLogin"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthToken"}}}}}
+      }
+    },
+    "/seller/profile": {
+      "get": {
+        "tags": ["Seller Profile"],
+        "summary": "Get current user's seller profile",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerProfile"}}}},
+          "404": {"description": "Seller profile not found"}
+        }
+      },
+      "post": {
+        "tags": ["Seller Profile"],
+        "summary": "Create seller profile",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerProfileCreate"}}}},
+        "responses": {
+          "201": {"description": "Created", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerProfile"}}}},
+          "409": {"description": "User already has a seller profile"}
+        }
+      },
+      "put": {
+        "tags": ["Seller Profile"],
+        "summary": "Update seller profile",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerProfileUpdate"}}}},
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerProfile"}}}},
+          "404": {"description": "Seller profile not found"}
+        }
+      },
+      "delete": {
+        "tags": ["Seller Profile"],
+        "summary": "Soft delete seller profile",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {"content": {"application/json": {"schema": {"type": "object", "properties": {"reason": {"type": "string"}}}}}},
+        "responses": {
+          "200": {"description": "Deleted successfully"},
+          "404": {"description": "Seller profile not found"}
+        }
+      }
+    },
+    "/seller/profile/upload": {
+      "post": {
+        "tags": ["Seller Profile"],
+        "summary": "Upload seller profile documents",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {"type": "string", "format": "binary"},
+                  "type": {"type": "string", "enum": ["identity_document", "business_certificate", "business_logo"]}
+                },
+                "required": ["file", "type"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "File uploaded successfully"},
+          "404": {"description": "Seller profile not found"}
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "UserRegister": {
+        "type": "object",
+        "properties": {
+          "firstname": {"type": "string"},
+          "lastname": {"type": "string"},
+          "email": {"type": "string", "format": "email"},
+          "phone": {"type": "string"},
+          "password": {"type": "string", "format": "password"}
+        },
+        "required": ["firstname", "lastname", "email", "password"]
+      },
+      "UserLogin": {
+        "type": "object",
+        "properties": {
+          "email": {"type": "string", "format": "email"},
+          "password": {"type": "string", "format": "password"}
+        },
+        "required": ["email", "password"]
+      },
+      "EmailOnly": {
+        "type": "object",
+        "properties": {"email": {"type": "string", "format": "email"}},
+        "required": ["email"]
+      },
+      "PasswordReset": {
+        "type": "object",
+        "properties": {
+          "token": {"type": "string"},
+          "email": {"type": "string", "format": "email"},
+          "password": {"type": "string", "format": "password"},
+          "password_confirmation": {"type": "string", "format": "password"}
+        },
+        "required": ["token", "email", "password", "password_confirmation"]
+      },
+      "GoogleToken": {
+        "type": "object",
+        "properties": {"token": {"type": "string"}},
+        "required": ["token"]
+      },
+      "AuthToken": {
+        "type": "object",
+        "properties": {
+          "token": {"type": "string"},
+          "user": {"$ref": "#/components/schemas/User"}
+        }
+      },
+      "AuthTokenNeedPhone": {
+        "allOf": [
+          {"$ref": "#/components/schemas/AuthToken"},
+          {
+            "type": "object",
+            "properties": {"need_phone": {"type": "boolean"}}
+          }
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "firstname": {"type": "string"},
+          "lastname": {"type": "string"},
+          "email": {"type": "string"}
+        }
+      },
+      "SellerProfile": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer"},
+          "user_id": {"type": "integer"},
+          "country": {"type": "string"},
+          "state": {"type": "string"},
+          "city": {"type": "string"},
+          "address": {"type": "string"},
+          "business_email": {"type": "string", "format": "email"},
+          "business_phone_number": {"type": "string"},
+          "instagram": {"type": "string", "nullable": true},
+          "facebook": {"type": "string", "nullable": true},
+          "identity_document": {"type": "string", "nullable": true},
+          "business_name": {"type": "string"},
+          "business_registration_number": {"type": "string"},
+          "business_certificate": {"type": "string", "nullable": true},
+          "business_logo": {"type": "string", "nullable": true},
+          "bank_name": {"type": "string"},
+          "account_number": {"type": "string"},
+          "registration_status": {"type": "string", "enum": ["pending", "approved", "rejected"]},
+          "created_at": {"type": "string", "format": "date-time"},
+          "updated_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "SellerProfileCreate": {
+        "type": "object",
+        "properties": {
+          "country": {"type": "string"},
+          "state": {"type": "string"},
+          "city": {"type": "string"},
+          "address": {"type": "string"},
+          "business_email": {"type": "string", "format": "email"},
+          "business_phone_number": {"type": "string"},
+          "instagram": {"type": "string"},
+          "facebook": {"type": "string"},
+          "identity_document": {"type": "string"},
+          "business_name": {"type": "string"},
+          "business_registration_number": {"type": "string"},
+          "business_certificate": {"type": "string"},
+          "business_logo": {"type": "string"},
+          "bank_name": {"type": "string"},
+          "account_number": {"type": "string"}
+        },
+        "required": ["country", "state", "city", "address", "business_email", "business_phone_number", "business_name", "business_registration_number", "bank_name", "account_number"]
+      },
+      "SellerProfileUpdate": {
+        "type": "object",
+        "properties": {
+          "country": {"type": "string"},
+          "state": {"type": "string"},
+          "city": {"type": "string"},
+          "address": {"type": "string"},
+          "business_email": {"type": "string", "format": "email"},
+          "business_phone_number": {"type": "string"},
+          "instagram": {"type": "string"},
+          "facebook": {"type": "string"},
+          "identity_document": {"type": "string"},
+          "business_name": {"type": "string"},
+          "business_registration_number": {"type": "string"},
+          "business_certificate": {"type": "string"},
+          "business_logo": {"type": "string"},
+          "bank_name": {"type": "string"},
+          "account_number": {"type": "string"}
+        }
+      }
+    }
+  }
+}
