@@ -22,10 +22,10 @@ class ProductFactory extends Factory
         $africanTribes = ['Yoruba', 'Igbo', 'Hausa', 'Ashanti', 'Zulu', 'Masai', 'Xhosa', 'Fulani', 'Tuareg'];
         $sizes = ['S', 'M', 'L', 'XL', 'XXL', '36', '38', '40', '42', '44'];
         $genders = ['male', 'female', 'unisex'];
-        $status = ['pending', 'approved', 'rejected'];
+        $status = ['pending', 'approved', 'rejected']; // Only these status values are valid
         
         return [
-            'seller_profile_id' => SellerProfile::inRandomOrder()->first()->id,
+            'seller_profile_id' => SellerProfile::factory(),
             'name' => fake()->words(3, true) . ' ' . $this->faker->randomElement($africanStyles),
             'gender' => $this->faker->randomElement($genders),
             'style' => $this->faker->randomElement($africanStyles),
@@ -36,7 +36,7 @@ class ProductFactory extends Factory
             'processing_time_type' => $this->faker->randomElement(['normal', 'quick_quick']),
             'processing_days' => $this->faker->numberBetween(2, 14),
             'price' => $this->faker->randomFloat(2, 20, 500),
-            'status' => $this->faker->randomElement($status),
+            'status' => $this->faker->randomElement($status), // Must use enum values from migration
         ];
     }
     

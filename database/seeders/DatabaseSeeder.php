@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             OrderSeeder::class,
             ReviewSeeder::class,
             BusinessProfileSeeder::class,
+            AdminDashboardSeeder::class, // Add test data for admin dashboard
         ]);
     }
 }
