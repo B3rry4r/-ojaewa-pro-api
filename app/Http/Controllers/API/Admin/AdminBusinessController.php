@@ -4,11 +4,18 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessProfile;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class AdminBusinessController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * List business profiles by category, paginated
      * 
@@ -96,16 +103,42 @@ class AdminBusinessController extends Controller
             'rejection_reason' => 'required_if:store_status,rejected|string|nullable',
         ]);
         
-        $business = BusinessProfile::where('category', $category)
+        $business = BusinessProfile::with('user')->where('category', $category)
             ->findOrFail($id);
         
-        $business->store_status = $request->store_status;
+        $oldStatus = $business->store_status;
+        $newStatus = $request->store_status;
         
-        if ($request->store_status === 'deactivated' && $request->has('rejection_reason')) {
+        $business->store_status = $newStatus;
+        
+        if ($newStatus === 'deactivated' && $request->has('rejection_reason')) {
             $business->rejection_reason = $request->rejection_reason;
         }
         
         $business->save();
+        
+        // Send business approval/rejection notifications if status changed
+        if ($oldStatus !== $newStatus && in_array($newStatus, ['approved', 'deactivated'])) {
+            $this->notificationService->sendEmailAndPush(
+                $business->user,
+                'Business Profile Update - Oja Ewa',
+                'business_approved',
+                $newStatus === 'approved' ? 'Business Approved!' : 'Business Profile Needs Update',
+                $newStatus === 'approved' 
+                    ? "Congratulations! Your {$business->business_name} profile has been approved."
+                    : "Your {$business->business_name} profile needs some updates before approval.",
+                [
+                    'business' => $business,
+                    'status' => $newStatus,
+                    'rejectionReason' => $business->rejection_reason
+                ],
+                [
+                    'business_id' => $business->id,
+                    'status' => $newStatus,
+                    'deep_link' => "/business/{$business->id}"
+                ]
+            );
+        }
         
         return response()->json([
             'status' => 'success',

@@ -9,6 +9,7 @@ use App\Http\Controllers\API\BlogController;
 use App\Http\Controllers\API\FaqController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ConnectController;
+use App\Http\Controllers\API\CategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
@@ -60,6 +61,16 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/business/{category}', [App\Http\Controllers\API\Admin\AdminBusinessController::class, 'index']);
     Route::get('/business/{category}/{id}', [App\Http\Controllers\API\Admin\AdminBusinessController::class, 'show']);
     Route::patch('/business/{category}/{id}/status', [App\Http\Controllers\API\Admin\AdminBusinessController::class, 'updateStatus']);
+    
+    // Blog Management
+    Route::prefix('blogs')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\Admin\AdminBlogController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\Admin\AdminBlogController::class, 'store']);
+        Route::get('/{id}', [App\Http\Controllers\API\Admin\AdminBlogController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\API\Admin\AdminBlogController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\API\Admin\AdminBlogController::class, 'destroy']);
+        Route::patch('/{id}/toggle-publish', [App\Http\Controllers\API\Admin\AdminBlogController::class, 'togglePublish']);
+    });
 });
 
 // Seller Profile, Product, Order, Review (authenticated routes)
@@ -143,4 +154,11 @@ Route::prefix('connect')->group(function () {
     Route::get('/social', [ConnectController::class, 'social']);
     Route::get('/contact', [ConnectController::class, 'contact']);
     Route::get('/app-links', [ConnectController::class, 'appLinks']);
+});
+
+// Categories (public)
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index']); // ?type={type}
+    Route::get('/{id}/children', [CategoryController::class, 'children']);
+    Route::get('/{type}/{slug}/items', [CategoryController::class, 'items']);
 });

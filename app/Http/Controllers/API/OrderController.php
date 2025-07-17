@@ -7,6 +7,7 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,12 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * Display a listing of orders for the authenticated user.
      * 
@@ -95,6 +102,17 @@ class OrderController extends Controller
             // Commit the transaction
             DB::commit();
             
+            // Send order creation notifications
+            $this->notificationService->sendEmailAndPush(
+                $user,
+                'Order Confirmation - Oja Ewa',
+                'order_created',
+                'Order Confirmed!',
+                "Your order #{$order->id} has been confirmed and is being processed.",
+                ['order' => $order->load('orderItems.product')],
+                ['order_id' => $order->id, 'deep_link' => "/orders/{$order->id}"]
+            );
+            
             return response()->json([
                 'message' => 'Order created successfully',
                 'order' => $order->load('orderItems.product')
@@ -128,5 +146,68 @@ class OrderController extends Controller
         // No need to manually set avg_rating as it's already provided by the accessor
         
         return response()->json($order);
+    }
+
+    /**
+     * Update order status (Admin only)
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateStatus(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'status' => 'required|in:pending,processing,shipped,delivered,cancelled',
+            'tracking_number' => 'nullable|string',
+            'cancellation_reason' => 'nullable|string',
+        ]);
+
+        $order = Order::with(['user', 'orderItems.product'])->findOrFail($id);
+        $oldStatus = $order->status;
+        $newStatus = $request->status;
+
+        // Update order status
+        $order->update([
+            'status' => $newStatus,
+            'tracking_number' => $request->tracking_number,
+            'cancellation_reason' => $request->cancellation_reason,
+            'delivered_at' => $newStatus === 'delivered' ? now() : null,
+        ]);
+
+        // Send status update notifications if status changed
+        if ($oldStatus !== $newStatus) {
+            $statusClass = $this->getStatusClass($newStatus);
+            
+            $this->notificationService->sendEmailAndPush(
+                $order->user,
+                "Order Status Update - Oja Ewa",
+                'order_status_updated',
+                'Order Status Updated',
+                "Your order #{$order->id} status has been updated to {$newStatus}.",
+                ['order' => $order, 'statusClass' => $statusClass],
+                ['order_id' => $order->id, 'status' => $newStatus, 'deep_link' => "/orders/{$order->id}"]
+            );
+        }
+
+        return response()->json([
+            'message' => 'Order status updated successfully',
+            'order' => $order
+        ]);
+    }
+
+    /**
+     * Get CSS class for order status
+     */
+    private function getStatusClass(string $status): string
+    {
+        return match($status) {
+            'pending' => 'status-warning',
+            'processing' => 'status-info',
+            'shipped' => 'status-info',
+            'delivered' => 'status-success',
+            'cancelled' => 'status-danger',
+            default => 'status-info'
+        };
     }
 }

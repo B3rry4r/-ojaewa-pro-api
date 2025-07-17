@@ -4,11 +4,18 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class AdminOrderController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * List all orders paginated with optional filtering
      * 
@@ -90,16 +97,56 @@ class AdminOrderController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,processing,shipped,delivered,canceled,paid',
+            'tracking_number' => 'nullable|string',
+            'cancellation_reason' => 'nullable|string',
         ]);
         
-        $order = Order::findOrFail($id);
-        $order->status = $request->status;
-        $order->save();
+        $order = Order::with(['user', 'orderItems.product'])->findOrFail($id);
+        $oldStatus = $order->status;
+        $newStatus = $request->status;
+        
+        $order->update([
+            'status' => $newStatus,
+            'tracking_number' => $request->tracking_number,
+            'cancellation_reason' => $request->cancellation_reason,
+            'delivered_at' => $newStatus === 'delivered' ? now() : null,
+        ]);
+        
+        // Send status update notifications if status changed
+        if ($oldStatus !== $newStatus) {
+            $statusClass = $this->getStatusClass($newStatus);
+            
+            $this->notificationService->sendEmailAndPush(
+                $order->user,
+                "Order Status Update - Oja Ewa",
+                'order_status_updated',
+                'Order Status Updated',
+                "Your order #{$order->id} status has been updated to {$newStatus}.",
+                ['order' => $order, 'statusClass' => $statusClass],
+                ['order_id' => $order->id, 'status' => $newStatus, 'deep_link' => "/orders/{$order->id}"]
+            );
+        }
         
         return response()->json([
             'status' => 'success',
             'message' => "Order status updated to {$request->status} successfully",
             'data' => $order
         ]);
+    }
+    
+    /**
+     * Get CSS class for order status
+     */
+    private function getStatusClass(string $status): string
+    {
+        return match($status) {
+            'pending' => 'status-warning',
+            'processing' => 'status-info',
+            'shipped' => 'status-info',
+            'delivered' => 'status-success',
+            'canceled' => 'status-danger',
+            'paid' => 'status-success',
+            default => 'status-info'
+        };
     }
 }

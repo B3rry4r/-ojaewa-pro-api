@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'resend' => [
+        'api_key' => env('RESEND_API_KEY'),
+        'from_email' => env('RESEND_FROM_EMAIL', 'noreply@ojaewa.com'),
+    ],
+
+    'pusher_beams' => [
+        'instance_id' => env('PUSHER_BEAMS_INSTANCE_ID'),
+        'secret_key' => env('PUSHER_BEAMS_SECRET_KEY'),
+    ],
+
 ];

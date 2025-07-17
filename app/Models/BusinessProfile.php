@@ -45,6 +45,7 @@ class BusinessProfile extends Model
         'youtube',
         'spotify',
         'store_status',
+        'rejection_reason',
         'subscription_status',
         'subscription_ends_at'
     ];
