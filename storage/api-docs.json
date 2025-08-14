@@ -1,14 +1,68 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Oja Ewa API",
+    "title": "Oja Ewa Pro API",
     "version": "1.0.0",
-    "description": "API endpoints grouped by **User Auth**, **Admin Auth**, **Seller Profile**, **Products**, **Orders**, **Reviews**, **Business Profiles**, and **Admin Dashboard**"
+    "description": "Comprehensive e-commerce API for the Oja Ewa Pro platform. Supports user authentication, seller management, product catalog, order processing, business profiles, notifications, and administrative functions.",
+    "contact": {
+      "name": "API Support",
+      "email": "support@ojaewa.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
   },
   "servers": [
     {
       "url": "http://localhost/api",
-      "description": "Local dev server"
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://api.ojaewa.com/api",
+      "description": "Production Server"
+    },
+    {
+      "url": "https://staging-api.ojaewa.com/api",
+      "description": "Staging Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "User Auth",
+      "description": "User authentication endpoints including registration, login, password reset, and social login"
+    },
+    {
+      "name": "Admin Auth",
+      "description": "Admin authentication and management endpoints"
+    },
+    {
+      "name": "Seller Profile",
+      "description": "Seller profile management for merchants and vendors"
+    },
+    {
+      "name": "Products",
+      "description": "Product catalog management including CRUD operations and search"
+    },
+    {
+      "name": "Orders",
+      "description": "Order processing, tracking, and management"
+    },
+    {
+      "name": "Reviews",
+      "description": "Product and order review system"
+    },
+    {
+      "name": "Business Profiles",
+      "description": "Business profile management for different business types"
+    },
+    {
+      "name": "Categories",
+      "description": "Category management and hierarchical organization"
+    },
+    {
+      "name": "Admin Dashboard",
+      "description": "Administrative dashboard and analytics endpoints"
     }
   ],
   "paths": {
@@ -28,12 +82,18 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "User registered successfully",
             "content": {
               "application/json": {
                 "schema": {"$ref": "#/components/schemas/AuthToken"}
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           }
         }
       }
@@ -52,12 +112,21 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Login successful",
             "content": {
               "application/json": {
                 "schema": {"$ref": "#/components/schemas/AuthToken"}
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           }
         }
       }
@@ -1670,26 +1739,176 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from login or registration"
+      }
+    },
+    "responses": {
+      "Success": {
+        "description": "Successful operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Operation completed successfully"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "The given data was invalid."
+                },
+                "errors": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "email": ["The email field is required."]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Unauthenticated."
+                }
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Access forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "This action is unauthorized."
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Resource not found."
+                }
+              }
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Internal server error occurred."
+                }
+              }
+            }
+          }
+        }
       }
     },
     "schemas": {
       "UserRegister": {
         "type": "object",
+        "description": "User registration request payload",
         "properties": {
-          "firstname": {"type": "string"},
-          "lastname": {"type": "string"},
-          "email": {"type": "string", "format": "email"},
-          "phone": {"type": "string"},
-          "password": {"type": "string", "format": "password"}
+          "firstname": {
+            "type": "string",
+            "description": "User's first name",
+            "example": "John"
+          },
+          "lastname": {
+            "type": "string",
+            "description": "User's last name",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address",
+            "example": "john.doe@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "User's phone number (optional)",
+            "example": "+1234567890"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "User's password (minimum 8 characters)",
+            "minLength": 8,
+            "example": "password123"
+          }
         },
         "required": ["firstname", "lastname", "email", "password"]
       },
       "UserLogin": {
         "type": "object",
+        "description": "User login request payload",
         "properties": {
-          "email": {"type": "string", "format": "email"},
-          "password": {"type": "string", "format": "password"}
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address",
+            "example": "john.doe@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "User's password",
+            "example": "password123"
+          }
         },
         "required": ["email", "password"]
       },
@@ -1715,10 +1934,29 @@
       },
       "AuthToken": {
         "type": "object",
+        "description": "Authentication response with token and user data",
         "properties": {
-          "token": {"type": "string"},
-          "user": {"$ref": "#/components/schemas/User"}
-        }
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "description": "Response message",
+            "example": "Authentication successful"
+          },
+          "token": {
+            "type": "string",
+            "description": "JWT authentication token",
+            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+          },
+          "user": {
+            "$ref": "#/components/schemas/User",
+            "description": "Authenticated user data"
+          }
+        },
+        "required": ["status", "token", "user"]
       },
       "AuthTokenNeedPhone": {
         "allOf": [
@@ -1731,12 +1969,49 @@
       },
       "User": {
         "type": "object",
+        "description": "User profile information",
         "properties": {
-          "id": {"type": "integer"},
-          "firstname": {"type": "string"},
-          "lastname": {"type": "string"},
-          "email": {"type": "string"}
-        }
+          "id": {
+            "type": "integer",
+            "description": "Unique user identifier",
+            "example": 1
+          },
+          "firstname": {
+            "type": "string",
+            "description": "User's first name",
+            "example": "John"
+          },
+          "lastname": {
+            "type": "string",
+            "description": "User's last name",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address",
+            "example": "john.doe@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "User's phone number",
+            "example": "+1234567890",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Account creation timestamp",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": ["id", "firstname", "lastname", "email"]
       },
       "SellerProfile": {
         "type": "object",

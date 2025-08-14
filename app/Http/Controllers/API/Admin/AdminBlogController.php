@@ -55,7 +55,7 @@ class AdminBlogController extends Controller
             'published' => 'boolean',
         ]);
 
-        $admin = Auth::user();
+        $admin = Auth::guard('admin')->user();
         
         $blog = Blog::create([
             'title' => $request->title,

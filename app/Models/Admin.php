@@ -18,6 +18,7 @@ class Admin extends Authenticatable
         'lastname',
         'email',
         'password',
+        'is_super_admin',
     ];
 
     protected $hidden = [
@@ -29,6 +30,8 @@ class Admin extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
+            'email_verified_at' => 'datetime',
         ];
     }
 }

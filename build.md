@@ -521,3 +521,35 @@ Include logo at top (logo URL placeholder) and styled body content.
 - Test results
 
 Follow Laravel best practices. Centralize logic. Keep templates clean and brand-consistent.
+
+
+--------
+
+
+Continue the Laravel 12 API-only project “Oja Ewa.” This mini‐phase adds category support.
+
+1. Create `categories` table:
+   - id, name, slug, parent_id (nullable, self‑reference), type (enum: market, beauty, brand, school, sustainability, music), order (int), timestamps.
+   - Soft deletes enabled.
+
+2. Category model:
+   - Self‑referencing parent()/children() relationships.
+   - Scope by type (e.g. Category::market()).
+
+3. Seeder:
+   - Populate top‑level “market” categories: men, women.
+   - Populate beauty, brand, school, sustainability, music categories and subcategories per your original brief.
+   - Ensure correct parent-child linking and realistic order values.
+
+4. Endpoints (public):
+   - GET /api/categories?type={type} → list top‑level categories of that type.
+   - GET /api/categories/{id}/children → list subcategories.
+   - GET /api/categories/{type}/{slug}/items → proxy to existing product/service/blog listings (just return IDs for now).
+
+5. Swagger:
+   - Tag under “Categories.”
+   - Document request parameters and response schemas.
+
+6. Tests:
+   - CategoryFactory generates with/without parent.
+   - GET endpoints return correct structure, filtering by type and parent.

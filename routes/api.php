@@ -27,11 +27,15 @@ Route::controller(UserAuthController::class)->group(function () {
 // Google OAuth
 Route::post('oauth/google', [GoogleAuthController::class, 'handle']);
 
-// Admin Auth
+// Admin Auth (unprotected endpoints)
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
+Route::post('/admin/create', [AdminAuthController::class, 'create']); // For initial setup - consider protecting this in production
 
-// Admin Dashboard Routes (protected by admin guard)
-Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+// All Admin Routes (protected by admin guard)
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    // Admin Profile Management
+    Route::get('/profile', [AdminAuthController::class, 'profile']);
+    Route::post('/logout', [AdminAuthController::class, 'logout']);
     // Dashboard Overview
     Route::get('/dashboard/overview', [App\Http\Controllers\API\Admin\AdminOverviewController::class, 'index']);
     

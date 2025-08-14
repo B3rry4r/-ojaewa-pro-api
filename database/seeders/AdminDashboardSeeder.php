@@ -25,8 +25,7 @@ class AdminDashboardSeeder extends Seeder
                 $sellerProfile = SellerProfile::factory()->create([
                     'user_id' => $user->id,
                     'registration_status' => 'pending',
-                    'store_name' => "Test Pending Seller {$index}",
-                    'description' => "Seller awaiting admin approval.",
+                    'business_name' => "Test Pending Seller {$index}",
                 ]);
                 
                 // Create pending products for this seller
