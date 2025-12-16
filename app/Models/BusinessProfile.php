@@ -47,7 +47,12 @@ class BusinessProfile extends Model
         'store_status',
         'rejection_reason',
         'subscription_status',
-        'subscription_ends_at'
+        'subscription_ends_at',
+        'subscription_type',
+        'billing_cycle', 
+        'subscription_amount',
+        'next_billing_date',
+        'subscription_updated_at'
     ];
     
     /**

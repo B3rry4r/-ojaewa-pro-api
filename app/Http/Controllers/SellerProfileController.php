@@ -22,7 +22,30 @@ class SellerProfileController extends Controller
             return response()->json(['message' => 'Seller profile not found'], 404);
         }
 
-        return response()->json($sellerProfile);
+        // Calculate seller statistics
+        $totalSales = $user->orders()
+            ->whereHas('orderItems.product.sellerProfile', function($query) use ($sellerProfile) {
+                $query->where('id', $sellerProfile->id);
+            })
+            ->where('status', 'paid')
+            ->sum('total_price');
+            
+        $avgRating = $user->sellerProfile->products()
+            ->whereHas('reviews')
+            ->with('reviews')
+            ->get()
+            ->flatMap(function ($product) {
+                return $product->reviews;
+            })
+            ->avg('rating');
+
+        // Add calculated fields to seller profile
+        $sellerData = $sellerProfile->toArray();
+        $sellerData['selling_since'] = $sellerProfile->created_at;
+        $sellerData['total_sales'] = round($totalSales, 2);
+        $sellerData['avg_rating'] = round($avgRating ?: 0, 1);
+
+        return response()->json($sellerData);
     }
 
     /**

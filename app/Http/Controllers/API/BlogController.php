@@ -42,9 +42,21 @@ class BlogController extends Controller
             ], 404);
         }
 
+        // Get related blog posts (same category or similar tags)
+        $relatedPosts = Blog::published()
+            ->where('id', '!=', $blog->id)
+            ->where('category', $blog->category)
+            ->with('admin:id,firstname,lastname')
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
         return response()->json([
             'status' => 'success',
-            'data' => $blog,
+            'data' => [
+                'blog' => $blog,
+                'related_posts' => $relatedPosts
+            ],
         ]);
     }
 

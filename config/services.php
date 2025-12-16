@@ -45,4 +45,9 @@ return [
         'secret_key' => env('PUSHER_BEAMS_SECRET_KEY'),
     ],
 
+    'paystack' => [
+        'public_key' => env('PAYSTACK_PUBLIC_KEY'),
+        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+    ],
+
 ];

@@ -21,6 +21,11 @@ class Order extends Model
         'user_id',
         'total_price',
         'status',
+        'tracking_number',
+        'cancellation_reason',
+        'delivered_at',
+        'payment_reference',
+        'payment_data',
     ];
 
     /**
@@ -30,6 +35,8 @@ class Order extends Model
      */
     protected $casts = [
         'total_price' => 'decimal:2',
+        'delivered_at' => 'datetime',
+        'payment_data' => 'array',
     ];
     
     /**

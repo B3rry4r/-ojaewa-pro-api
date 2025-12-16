@@ -19,11 +19,16 @@ class DatabaseSeeder extends Seeder
         // Create admin and other records
         $this->call([
             AdminSeeder::class,
+            CategorySeeder::class,
             SellerProfileSeeder::class, 
             ProductSeeder::class,
             OrderSeeder::class,
             ReviewSeeder::class,
             BusinessProfileSeeder::class,
+            BlogSeeder::class,
+            FaqSeeder::class,
+            WishlistSeeder::class,
+            NotificationSeeder::class,
             AdminDashboardSeeder::class, // Add test data for admin dashboard
         ]);
     }

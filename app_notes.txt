@@ -1,0 +1,370 @@
+User
+
+
+Sign in
+* Email
+* Password
+* Remember me
+
+Register
+* Firstname
+* Lastname
+* Email
+* Phone
+* Password
+* Tos
+
+Password Reset
+* Email
+* Token
+
+Sign in with Google
+* Email
+* Fullname
+* Password
+(Phone data may not come back, so it needs to be passed in if google auth is selected)
+(If you sign up with google, you still need to set a password
+
+Code verification on creating an account, we don’t need this if we use google.
+
+
+—Home Screen—
+
+—Search—
+Get Product categories
+Search for products
+Get a product
+
+—Market—
+Two main categories (men and women)
+Get sub categories for men and women
+Get all products for sub category (products should have an average review value added and returned)
+Store/write a review for a product
+Get a product including it’s reviews, and a products you may also like suggestion of 5 maximum products
+Get seller profile (selling since - should be when they created their seller profile using created at, total sales, avg. rating)
+Get product reviews
+Store order details
+Store order address (country, full name, phone number, state, city, zip code, address, default address)
+Get addresses
+Edit address
+Get all orders
+Return payment link (using paystack, also set up a web hook to receive web hooks from paystack)
+
+—Beauty—
+Get beauty sub categories
+Get products for sub category (after we get products, the flow for this follows what we did for market until the user checks out, so the same endpoints should work)
+Get services (business) for beauty category (services should have an average review value added and returned)
+Get a service (business)
+Get service reviews
+Store/write a review for a service (rating, headline, description)
+
+—Brands—
+Get brand categories Get category products (after we get products, the flow for this follows what we did for market until the user checks out, so the same endpoints should work) (products should have an average review value added and returned)
+
+—Schools—
+Get school categories
+Get school category sub categories
+Get schools in a sub category (schools should have an average review value added and returned)
+Store registration for the school (country, full name, phone number, state, city, address)
+Return a payment link using paystack
+Webhook for this payment type
+Write a review for a school
+Get school reviews
+Update a school registration to successful
+
+—Sustainability—
+Get sustainability categories
+Get services for the categories (include the avg review rating as well)
+Get a service
+Get service reviews
+Write a review for a service
+
+—Music—
+Get music categories
+Get music category services (include the avg review rating as well, similar to )
+Get a service
+Get service reviews
+Store/Write a review for a service
+
+—Account—
+Edit profile (first name, last name, email, phone)
+Your orders (get orders, get an order, write review for an order, get order tracking status)
+Addresses (get addresses, get an address, edit address)
+Password (update password)
+Notifications (all stored in a table called notifications for the user, data is allow push notifications, new products, new blog posts, discount and sales, new orders, so we return the default values for all of this, update request to update their states) Connect (get pre set instagram, Facebook, twitter links)
+FAQs (get faqs)
+
+ —Wishlist—
+Get all products, services saved in wishlist table
+
+—Notifications—
+Get notifications (date, text)
+
+—Blog—
+Get all posts (paginated 10 per page)
+Get a post (add a maximum 5 related posts as well)
+Get favorited posts
+
+
+
+Seller
+
+Authentication
+Seller profile which starts after creating a user profile.
+Additonal details in a seller profile table that we need to store.
+
+* Country
+* State
+* City
+* Address
+* Business Email
+* Business Phone Number
+* Instagram
+* Facebook
+* Identity_Document
+* Business Name
+* Business Registration Number
+* Business Certificate
+* Business Logo
+* Bank Name
+* Account Number
+* Registration Status
+
+—Get seller profile—
+
+—Your Shop—
+Get my seller profile Edit my seller profile
+Get all orders
+Get an order
+Get all products
+Get a product
+Add/create a product —> name, gender, style, tribe, description, image, size, processing time/price (A. normal -> days, price  B. quick quick -> days, price)
+Edit product (all options in create product)
+Delete product
+Delete seller profile (reason)
+
+
+
+Show Your Business
+
+Get business categories
+
+—Beauty—
+Get product categories (I don’t know where im getting this from yet or who’ll be creating it, it should be the admin, but we’re getting it here) Create a business category profile (country, state, city, address, business email, business phone number, website url, instagram, facebook, identity document, business name, type of offering (selling product, providing service —> use enums for this), product category, business description, product list, business certificates (document array), business logo
+
+If type of offering is providing service, let’s collect (professional title, service list, no need for business certificates)
+
+—Brands—
+Create a business profile with category as brand (location, state, city, address, business email, business phone number, website url, instagram, Facebook, business name, business, description, brand category, product list, cac document, business logo)
+
+—School—
+Create a business profile with category as school (country, state, city, address, business email, business phone number, website url, instagram, Facebook, school name, school type (use enums for fashion, music, catering, beauty), school biography, classes offered, business certificate, recognition and certifications (document array), business logo)
+
+—Music—
+Create a business profile with category as music (country, state, city, address, business email, business phone number, website url, instagram, Facebook, YouTube, Spotify, music category (use enums for dj, artist, producer), identity document, biography, business logo)
+—Your Business— Get businesses for user id
+Edit business information
+Manage payment (this is a subscription)
+Deactivate shop (update store status to deactivated, use enums for this to show pending, approved, deactivated)
+Delete business (delete business profile)
+
+
+
+
+Admin Dashboard
+
+-> Sign In Page
+* Email
+* Password
+* Remember me
+
+Admin Account Details that we’re getting this data from
+* Email
+* Password
+* Firstname
+* Lastname
+
+
+-> Overview Page
+**Data we need to return**
+* Admin first name
+
+—Pending Sellers— (this is a section name)
+* Business name
+* Reg. Date
+* Phone
+* Email
+* Status
+
+Action -> (View, we pass in the id of the seller to get its data)
+
+—Pending Product Listings— (this is a section name)
+* Product name
+* Gender
+* Style
+* Tribe
+* Status
+
+Action -> (View, we pass in the id of the product listing to get its data)
+
+—New Orders— (this is a section name)
+* Order ref
+* Customer
+* Order Date
+* Email
+* Status
+
+Action -> (View, we pass in the id of the order to get its data)
+
+—Statistics— (this is a section name)
+* Total users (count)
+* Total revenue (sum orders)
+* Total businesses (sum)
+* Market revenue (not sure, suggest)
+* Total sellers
+
+—Pending Businesses— (this is a section name)
+* Beauty (count)
+* Schools (count)
+* Brands (count)
+* Music (count)
+
+
+-> All Users Page (data we need to return) Return paginated data for all users, data is:
+* Name
+* Reg. Date
+* Phone
+* Email
+
+
+-> Market Page (data we need to return) Return all as paginated data
+Three tabs on this page:
+
+Sellers
+* Business name
+* Reg. Date
+* Phone
+* Email
+* Status
+
+Action -> get a seller -> get seller by id -> return all data
+Action -> approve or reject seller using their id and updating the status
+
+Product Listings
+* Product name
+* Gender
+* Style
+* Tribe
+* Status
+
+Action -> get a product -> get product by id -> return all data
+Action -> approve or reject product using their id and updating the status
+
+Orders
+* Order id
+* Customer (first name, last name)
+* Order date
+* Status (processing, delivered, cancelled, shipped) - enums for this
+* Retail price
+
+Action -> get an order -> get order by id -> return all data (add the product relationship data to this)
+Action -> update order status using order id and updating the status
+
+
+-> Beauty Page (data we need to return)
+
+* Business name
+* Reg. Date
+* Phone
+* Email
+* Offering
+* Status  (pending, approved)
+
+Action -> get a business in the beauty category by id
+Action -> update  status
+
+
+-> Brands Page (data we need to return)
+
+* Business name
+* Reg. Date
+* Phone
+* Email
+* Product category
+* Status  (pending, approved)
+
+Action -> get a business in the brands category by id
+Action -> update status
+
+
+-> School Page (data we need to return)
+
+* Business name
+* Reg. Date
+* Phone
+* Email
+* Type
+* Status (pending, approved, inactive)
+
+Action -> get a business in the brands category by id
+Action -> update status
+
+
+-> Music Page (data we need to return)
+* Business name
+* Reg. Date
+* Phone
+* Email
+* Category
+* Status (pending, approved)
+
+Action -> get a business in the music category by id
+Action -> update status
+
+
+-> Adverts Page (data we need to return)
+* Ad name
+* Image
+* Go live on (date)
+* End on (date)
+* Status
+
+Action -> create ad Action -> edit ad
+Action -> delete ad
+
+
+-> Sustainability Page (data we need to return)
+* Business name
+* Reg. Date
+* Phone
+* Email
+* Status (active, inactive)
+
+Action -> view business in sustainability category
+Action -> add new business in this category Action -> edit this business type
+Action -> update this business status
+
+
+-> Blog Page (data we need to return)
+* Featured image
+* Title
+* Date
+
+Action -> view blog
+Action -> create blog (title, body, featured image)
+Action -> edit blog
+Action -> delete blog
+
+
+-> Notifications Page (data we need to return)
+* Status
+* Description
+* Date (returned as readable for humans ex. 1 week ago, 1 day ago, 55 mins ago etc.)
+
+
+-> Settings Page (data we need to return)
+* Full name
+* Email
+
+Action -> edit profile (first name, last name)
+Action -> update password (password)

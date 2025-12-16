@@ -80,10 +80,24 @@ class ProductController extends Controller
     {
         $product = Product::with(['sellerProfile', 'reviews'])->findOrFail($id);
         
-        // The avg_rating is already available as an accessor
-        // No need to manually set it
+        // Get "You may also like" suggestions (max 5)
+        $suggestions = Product::where('status', 'approved')
+            ->where('id', '!=', $id)
+            ->where(function($query) use ($product) {
+                $query->where('style', $product->style)
+                      ->orWhere('tribe', $product->tribe)
+                      ->orWhere('gender', $product->gender);
+            })
+            ->with('sellerProfile')
+            ->inRandomOrder()
+            ->limit(5)
+            ->get();
         
-        return response()->json($product);
+        // Convert product to array and add suggestions
+        $productData = $product->toArray();
+        $productData['suggestions'] = $suggestions;
+        
+        return response()->json($productData);
     }
 
     /**
@@ -188,5 +202,62 @@ class ProductController extends Controller
         // The accessor is automatically included in the JSON response
         
         return response()->json($products);
+    }
+    
+    /**
+     * Search for products
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $request->validate([
+            'q' => 'required|string|min:1|max:255',
+            'gender' => 'sometimes|in:male,female,unisex',
+            'style' => 'sometimes|string|max:100',
+            'tribe' => 'sometimes|string|max:100',
+            'price_min' => 'sometimes|numeric|min:0',
+            'price_max' => 'sometimes|numeric|min:0',
+            'per_page' => 'sometimes|integer|min:1|max:50',
+        ]);
+
+        $query = Product::where('status', 'approved');
+        
+        // Search in name and description
+        $searchTerm = $request->input('q');
+        $query->where(function($q) use ($searchTerm) {
+            $q->where('name', 'like', '%' . $searchTerm . '%')
+              ->orWhere('description', 'like', '%' . $searchTerm . '%');
+        });
+
+        // Apply filters
+        if ($request->has('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        if ($request->has('style')) {
+            $query->where('style', 'like', '%' . $request->style . '%');
+        }
+
+        if ($request->has('tribe')) {
+            $query->where('tribe', 'like', '%' . $request->tribe . '%');
+        }
+
+        if ($request->has('price_min')) {
+            $query->where('price', '>=', $request->price_min);
+        }
+
+        if ($request->has('price_max')) {
+            $query->where('price', '<=', $request->price_max);
+        }
+
+        // Get paginated results with avg ratings
+        $perPage = $request->input('per_page', 10);
+        $products = $query->with('sellerProfile')
+                          ->orderBy('created_at', 'desc')
+                          ->paginate($perPage);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $products
+        ]);
     }
 }

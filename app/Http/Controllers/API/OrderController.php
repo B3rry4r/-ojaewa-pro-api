@@ -197,6 +197,91 @@ class OrderController extends Controller
     }
 
     /**
+     * Get order tracking status
+     * 
+     * @param string $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function tracking(string $id): JsonResponse
+    {
+        $user = Auth::user();
+        
+        $order = Order::where('user_id', $user->id)->findOrFail($id);
+        
+        // Define tracking stages based on status
+        $trackingStages = [
+            'pending' => [
+                'title' => 'Order Placed',
+                'description' => 'Your order has been placed and is awaiting processing',
+                'completed' => true,
+                'date' => $order->created_at->format('M d, Y H:i')
+            ],
+            'processing' => [
+                'title' => 'Processing',
+                'description' => 'Your order is being prepared',
+                'completed' => in_array($order->status, ['processing', 'shipped', 'delivered']),
+                'date' => $order->status === 'processing' ? 'Current stage' : null
+            ],
+            'shipped' => [
+                'title' => 'Shipped',
+                'description' => $order->tracking_number ? "Tracking: {$order->tracking_number}" : 'Your order has been shipped',
+                'completed' => in_array($order->status, ['shipped', 'delivered']),
+                'date' => $order->status === 'shipped' ? 'Current stage' : null
+            ],
+            'delivered' => [
+                'title' => 'Delivered',
+                'description' => 'Your order has been delivered',
+                'completed' => $order->status === 'delivered',
+                'date' => $order->delivered_at ? $order->delivered_at->format('M d, Y H:i') : null
+            ]
+        ];
+        
+        // Handle cancelled orders
+        if ($order->status === 'cancelled') {
+            $trackingStages = [
+                'pending' => $trackingStages['pending'],
+                'cancelled' => [
+                    'title' => 'Cancelled',
+                    'description' => $order->cancellation_reason ?: 'Order was cancelled',
+                    'completed' => true,
+                    'date' => $order->updated_at->format('M d, Y H:i')
+                ]
+            ];
+        }
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'order_id' => $order->id,
+                'current_status' => $order->status,
+                'tracking_number' => $order->tracking_number,
+                'stages' => array_values($trackingStages),
+                'estimated_delivery' => $this->calculateEstimatedDelivery($order),
+            ]
+        ]);
+    }
+
+    /**
+     * Calculate estimated delivery date
+     */
+    private function calculateEstimatedDelivery(Order $order): ?string
+    {
+        if ($order->status === 'delivered') {
+            return null; // Already delivered
+        }
+        
+        if ($order->status === 'cancelled') {
+            return null; // Cancelled orders have no delivery
+        }
+        
+        // Estimate 3-7 business days from created date
+        $estimatedDays = 5; // Average delivery time
+        $deliveryDate = $order->created_at->addDays($estimatedDays);
+        
+        return $deliveryDate->format('M d, Y');
+    }
+
+    /**
      * Get CSS class for order status
      */
     private function getStatusClass(string $status): string
