@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\BusinessProfile;
 use App\Models\Blog;
+use App\Models\SustainabilityInitiative;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
@@ -64,12 +65,14 @@ class CategoryController extends Controller
     
     /**
      * Get items for a specific category by type and slug.
+     * Returns full objects with pagination for products, businesses, or sustainability initiatives.
      * 
+     * @param Request $request
      * @param string $type
      * @param string $slug
      * @return JsonResponse
      */
-    public function items(string $type, string $slug): JsonResponse
+    public function items(Request $request, string $type, string $slug): JsonResponse
     {
         // Validate type
         if (!in_array($type, ['market', 'beauty', 'brand', 'school', 'sustainability', 'music'])) {
@@ -79,65 +82,75 @@ class CategoryController extends Controller
             ], 400);
         }
         
+        // Validate pagination parameters
+        $request->validate([
+            'per_page' => 'integer|min:1|max:50',
+            'page' => 'integer|min:1',
+        ]);
+        
         $category = Category::where('type', $type)
             ->where('slug', $slug)
             ->firstOrFail();
         
-        // For now, return IDs as specified in requirements
-        // This can be expanded to return actual items based on category type
-        $items = $this->getCategoryItems($category);
+        $perPage = $request->input('per_page', 15);
+        
+        // Get paginated items based on category type
+        $items = $this->getCategoryItems($category, $perPage);
         
         return response()->json([
             'status' => 'success',
             'data' => [
-                'category' => $category,
+                'category' => [
+                    'id' => $category->id,
+                    'type' => $category->type,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'description' => $category->description,
+                ],
                 'items' => $items,
             ],
         ]);
     }
     
     /**
-     * Get items for a category (placeholder implementation).
+     * Get paginated items for a category.
+     * Returns full objects (products, businesses, or sustainability initiatives).
      * 
      * @param Category $category
-     * @return array
+     * @param int $perPage
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    private function getCategoryItems(Category $category): array
+    private function getCategoryItems(Category $category, int $perPage)
     {
-        $items = [];
-        
         switch ($category->type) {
             case 'market':
-                // For market categories, return product IDs
-                // This would need proper category-product relationships in the future
-                $items = Product::where('status', 'approved')
-                    ->limit(20)
-                    ->pluck('id')
-                    ->toArray();
-                break;
+                // For market categories, return full product objects
+                return Product::where('status', 'approved')
+                    ->with(['sellerProfile:id,business_name,business_email,city,state'])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($perPage);
                 
             case 'beauty':
             case 'brand':
             case 'school':
-            case 'sustainability':
             case 'music':
-                // For business profile categories, return business profile IDs
-                $items = BusinessProfile::where('category', $category->type)
-                    ->where('status', 'approved')
-                    ->limit(20)
-                    ->pluck('id')
-                    ->toArray();
-                break;
+                // For business profile categories, return full business objects
+                return BusinessProfile::where('category', $category->type)
+                    ->where('store_status', 'approved')
+                    ->with(['user:id,firstname,lastname'])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($perPage);
+                
+            case 'sustainability':
+                // For sustainability categories, return full sustainability initiative objects
+                return SustainabilityInitiative::where('status', 'active')
+                    ->with(['admin:id,firstname,lastname'])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($perPage);
                 
             default:
-                // For other types, could return blog IDs or other relevant content
-                $items = Blog::where('is_published', true)
-                    ->limit(20)
-                    ->pluck('id')
-                    ->toArray();
-                break;
+                // Fallback: return empty paginated collection
+                return collect([])->paginate($perPage);
         }
-        
-        return $items;
     }
 }
