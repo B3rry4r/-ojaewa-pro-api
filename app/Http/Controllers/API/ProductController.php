@@ -260,4 +260,159 @@ class ProductController extends Controller
             'data' => $products
         ]);
     }
+
+    /**
+     * Browse products (public - approved only)
+     */
+    public function browse(Request $request): JsonResponse
+    {
+        $request->validate([
+            'q' => 'nullable|string|max:255',
+            'gender' => 'nullable|in:male,female,unisex',
+            'style' => 'nullable|string|max:100',
+            'tribe' => 'nullable|string|max:100',
+            'price_min' => 'nullable|numeric|min:0',
+            'price_max' => 'nullable|numeric|min:0',
+            'sort' => 'nullable|in:price_asc,price_desc,newest,popular',
+            'per_page' => 'nullable|integer|min:1|max:50'
+        ]);
+        
+        $query = Product::where('status', 'approved')
+                       ->with(['sellerProfile:id,business_name']);
+        
+        // Search
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        
+        // Filters
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+        
+        if ($request->filled('style')) {
+            $query->where('style', 'like', "%{$request->style}%");
+        }
+        
+        if ($request->filled('tribe')) {
+            $query->where('tribe', 'like', "%{$request->tribe}%");
+        }
+        
+        if ($request->filled('price_min')) {
+            $query->where('price', '>=', $request->price_min);
+        }
+        
+        if ($request->filled('price_max')) {
+            $query->where('price', '<=', $request->price_max);
+        }
+        
+        // Sorting
+        switch ($request->input('sort', 'newest')) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'popular':
+                $query->withCount('reviews')->orderBy('reviews_count', 'desc');
+                break;
+            case 'newest':
+            default:
+                $query->latest();
+                break;
+        }
+        
+        $perPage = $request->input('per_page', 10);
+        $products = $query->paginate($perPage);
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $products
+        ]);
+    }
+
+    /**
+     * View single product (public)
+     */
+    public function publicShow(int $id): JsonResponse
+    {
+        $product = Product::where('id', $id)
+                         ->where('status', 'approved')
+                         ->with([
+                             'sellerProfile:id,business_name,business_email,city,state',
+                             'reviews.user:id,firstname,lastname'
+                         ])
+                         ->firstOrFail();
+        
+        // Get suggestions
+        $suggestions = Product::where('status', 'approved')
+                             ->where('id', '!=', $product->id)
+                             ->where(function($q) use ($product) {
+                                 $q->where('style', $product->style)
+                                   ->orWhere('tribe', $product->tribe)
+                                   ->orWhere('gender', $product->gender);
+                             })
+                             ->with('sellerProfile:id,business_name')
+                             ->inRandomOrder()
+                             ->limit(5)
+                             ->get();
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'product' => $product,
+                'suggestions' => $suggestions
+            ]
+        ]);
+    }
+
+    /**
+     * Get product filters metadata (public)
+     */
+    public function filters(): JsonResponse
+    {
+        $filters = [
+            'genders' => Product::select('gender')
+                               ->where('status', 'approved')
+                               ->distinct()
+                               ->pluck('gender')
+                               ->filter()
+                               ->values(),
+            
+            'styles' => Product::select('style')
+                              ->where('status', 'approved')
+                              ->distinct()
+                              ->pluck('style')
+                              ->filter()
+                              ->values(),
+            
+            'tribes' => Product::select('tribe')
+                              ->where('status', 'approved')
+                              ->distinct()
+                              ->pluck('tribe')
+                              ->filter()
+                              ->values(),
+            
+            'price_range' => Product::where('status', 'approved')
+                                   ->selectRaw('MIN(price) as min, MAX(price) as max')
+                                   ->first(),
+            
+            'sort_options' => [
+                ['value' => 'newest', 'label' => 'Newest First'],
+                ['value' => 'price_asc', 'label' => 'Price: Low to High'],
+                ['value' => 'price_desc', 'label' => 'Price: High to Low'],
+                ['value' => 'popular', 'label' => 'Most Popular']
+            ]
+        ];
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $filters
+        ]);
+    }
 }

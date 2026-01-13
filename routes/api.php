@@ -93,12 +93,67 @@ Route::post("/webhook/paystack/school", [
     "handlePaymentWebhook",
 ]);
 
+// ============================================
+// PUBLIC BUSINESS PROFILES
+// ============================================
+Route::prefix('business/public')->group(function () {
+    Route::get('/', [BusinessProfileController::class, 'publicIndex']);
+    Route::get('/{id}', [BusinessProfileController::class, 'publicShow']);
+});
+
+// ============================================
+// PUBLIC PRODUCT BROWSING
+// ============================================
+Route::prefix('products')->group(function () {
+    Route::get('/browse', [ProductController::class, 'browse']);
+    Route::get('/filters', [ProductController::class, 'filters']);
+    Route::get('/public/{id}', [ProductController::class, 'publicShow']);
+});
+
+// ============================================
+// PUBLIC SUSTAINABILITY INITIATIVES
+// ============================================
+Route::prefix('sustainability')->group(function () {
+    Route::get('/', [SustainabilityController::class, 'index']);
+    Route::get('/{id}', [SustainabilityController::class, 'show']);
+});
+
+// ============================================
+// PUBLIC ADVERTS
+// ============================================
+Route::prefix('adverts')->group(function () {
+    Route::get('/', [AdvertController::class, 'index']);
+    Route::get('/{id}', [AdvertController::class, 'show']);
+});
+
 // AUTHENTICATED USER ROUTES
 Route::middleware("auth:sanctum")->group(function () {
     // 👤 ACCOUNT MANAGEMENT
     Route::get("/profile", [UserController::class, "profile"]);
     Route::put("/profile", [UserController::class, "updateProfile"]);
     Route::put("/password", [UserController::class, "updatePassword"]);
+    
+    // USER LOGOUT
+    Route::post('/logout', function (Request $request) {
+        $token = $request->user()->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        }
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logged out successfully'
+        ]);
+    });
+    
+    // SHOPPING CART
+    Route::prefix('cart')->group(function () {
+        Route::get('/', [CartController::class, 'index']);
+        Route::post('/items', [CartController::class, 'store']);
+        Route::patch('/items/{id}', [CartController::class, 'update']);
+        Route::delete('/items/{id}', [CartController::class, 'destroy']);
+        Route::delete('/', [CartController::class, 'clear']);
+    });
 
     // ADDRESS MANAGEMENT
     Route::prefix("addresses")->group(function () {
@@ -131,6 +186,7 @@ Route::middleware("auth:sanctum")->group(function () {
             APIOrderController::class,
             "tracking",
         ]);
+        Route::post("/{id}/cancel", [APIOrderController::class, "cancel"]);
     });
 
     Route::prefix("reviews")->group(function () {

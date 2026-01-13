@@ -245,4 +245,48 @@ class BusinessProfileController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Get all approved business profiles (public)
+     */
+    public function publicIndex(Request $request): JsonResponse
+    {
+        $query = BusinessProfile::where('store_status', 'approved')
+                               ->with('user:id,firstname,lastname');
+        
+        // Optional filters
+        if ($request->has('category')) {
+            $query->where('category', $request->category);
+        }
+        
+        if ($request->has('offering_type')) {
+            $query->where('offering_type', $request->offering_type);
+        }
+        
+        $perPage = $request->input('per_page', 15);
+        $businesses = $query->latest()->paginate($perPage);
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Public business profiles retrieved successfully',
+            'data' => $businesses
+        ]);
+    }
+
+    /**
+     * Get single approved business profile (public)
+     */
+    public function publicShow(string $id): JsonResponse
+    {
+        $business = BusinessProfile::where('id', $id)
+                                   ->where('store_status', 'approved')
+                                   ->with('user:id,firstname,lastname')
+                                   ->firstOrFail();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Business profile retrieved successfully',
+            'data' => $business
+        ]);
+    }
 }

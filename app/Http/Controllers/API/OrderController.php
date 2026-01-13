@@ -296,3 +296,49 @@ class OrderController extends Controller
         };
     }
 }
+
+    /**
+     * Cancel order (user can cancel pending/processing orders)
+     */
+    public function cancel(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            "cancellation_reason" => "required|string|max:500"
+        ]);
+        
+        $user = Auth::user();
+        $order = Order::where("id", $id)
+                     ->where("user_id", $user->id)
+                     ->firstOrFail();
+        
+        // Business rules: can only cancel pending or processing orders
+        if (!in_array($order->status, ["pending", "processing"])) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Cannot cancel order with status '{$order->status}'. Only pending or processing orders can be cancelled."
+            ], 400);
+        }
+        
+        // Update order
+        $order->status = "cancelled";
+        $order->cancellation_reason = $request->cancellation_reason;
+        $order->save();
+        
+        // Send notification
+        $this->notificationService->sendEmailAndPush(
+            $user,
+            "Order Cancelled - Oja Ewa",
+            "order_cancelled",
+            "Order Cancelled",
+            "Your order #{$order->id} has been cancelled.",
+            ["order" => $order],
+            ["order_id" => $order->id, "deep_link" => "/orders/{$order->id}"]
+        );
+        
+        return response()->json([
+            "status" => "success",
+            "message" => "Order cancelled successfully",
+            "data" => $order
+        ]);
+    }
+}
