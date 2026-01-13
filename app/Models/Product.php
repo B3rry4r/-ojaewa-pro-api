@@ -70,6 +70,16 @@ class Product extends Model
      */
     public function getAvgRatingAttribute(): float
     {
-        return $this->reviews()->avg('rating') ?? 0;
+        // If reviews are already loaded, use them to avoid extra query
+        if ($this->relationLoaded('reviews')) {
+            $count = $this->reviews->count();
+            if ($count === 0) {
+                return 0;
+            }
+            return round($this->reviews->avg('rating'), 1);
+        }
+        
+        // Otherwise, query the database
+        return round($this->reviews()->avg('rating') ?? 0, 1);
     }
 }
