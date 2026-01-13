@@ -78,26 +78,37 @@ class ProductController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $product = Product::with(['sellerProfile', 'reviews'])->findOrFail($id);
-        
-        // Get "You may also like" suggestions (max 5)
-        $suggestions = Product::where('status', 'approved')
-            ->where('id', '!=', $id)
-            ->where(function($query) use ($product) {
-                $query->where('style', $product->style)
-                      ->orWhere('tribe', $product->tribe)
-                      ->orWhere('gender', $product->gender);
-            })
-            ->with('sellerProfile')
-            ->inRandomOrder()
-            ->limit(5)
-            ->get();
-        
-        // Convert product to array and add suggestions
-        $productData = $product->toArray();
-        $productData['suggestions'] = $suggestions;
-        
-        return response()->json($productData);
+        try {
+            $product = Product::with(['sellerProfile', 'reviews.user:id,firstname,lastname'])
+                ->findOrFail($id);
+            
+            // Get "You may also like" suggestions (max 5)
+            $suggestions = Product::where('status', 'approved')
+                ->where('id', '!=', $id)
+                ->where(function($query) use ($product) {
+                    $query->where('style', $product->style)
+                          ->orWhere('tribe', $product->tribe)
+                          ->orWhere('gender', $product->gender);
+                })
+                ->with('sellerProfile:id,business_name,business_email,city,state')
+                ->inRandomOrder()
+                ->limit(5)
+                ->get();
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'product' => $product,
+                    'suggestions' => $suggestions
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve product',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], 500);
+        }
     }
 
     /**
