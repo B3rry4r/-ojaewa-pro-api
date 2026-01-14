@@ -60,6 +60,8 @@ class BusinessProfileSeeder extends Seeder
                     ]),
                     'professional_title' => 'Beauty Expert',
                     'business_logo' => 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop',
+                    'instagram' => '@' . strtolower(str_replace(' ', '', $data['business_name'])),
+                    'facebook' => strtolower(str_replace(' ', '', $data['business_name'])),
                 ]);
             } elseif ($category === 'brand') {
                 $data = array_merge($data, [
@@ -74,10 +76,12 @@ class BusinessProfileSeeder extends Seeder
                         'tax_clearance.pdf'
                     ]),
                     'business_logo' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop',
+                    'facebook' => strtolower(str_replace(' ', '', $data['business_name'])),
                     'website_url' => 'https://www.' . strtolower(str_replace(' ', '', $data['business_name'])) . '.com',
                     'instagram' => '@' . strtolower(str_replace(' ', '', $data['business_name'])),
                 ]);
             } elseif ($category === 'school') {
+                    'business_logo' => 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=400&fit=crop',
                 $data = array_merge($data, [
                     'school_type' => fake()->randomElement(['fashion', 'music', 'catering', 'beauty']),
                     'school_biography' => fake()->paragraphs(2, true),
@@ -89,6 +93,7 @@ class BusinessProfileSeeder extends Seeder
                     'website_url' => 'https://www.' . strtolower(str_replace(' ', '', $data['business_name'])) . '.edu',
                 ]);
             } elseif ($category === 'music') {
+                    'business_logo' => 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop',
                 $data = array_merge($data, [
                     'music_category' => fake()->randomElement(['dj', 'artist', 'producer']),
                     'identity_document' => null, // Optional field, can be uploaded later
