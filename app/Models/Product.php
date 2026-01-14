@@ -47,7 +47,7 @@ class Product extends Model
      *
      * @var array
      */
-    protected $appends = ['avg_rating'];
+    // protected $appends = ['avg_rating']; // Temporarily disabled for debugging
 
     /**
      * Get the seller profile that owns the product.
