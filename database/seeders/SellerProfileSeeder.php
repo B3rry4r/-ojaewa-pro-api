@@ -20,6 +20,8 @@ class SellerProfileSeeder extends Seeder
         foreach ($users as $user) {
             SellerProfile::factory()->create([
                 'user_id' => $user->id,
+                'registration_status' => 'approved',
+                'active' => true,
             ]);
         }
     }
