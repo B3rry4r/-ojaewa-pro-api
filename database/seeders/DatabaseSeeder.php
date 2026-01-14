@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             WishlistSeeder::class,
             NotificationSeeder::class,
             AdminDashboardSeeder::class,
+            SustainabilityInitiativeSeeder::class,
         ]);
         
         // Add extra data
