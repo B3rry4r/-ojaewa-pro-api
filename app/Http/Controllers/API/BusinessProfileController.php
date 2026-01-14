@@ -289,4 +289,115 @@ class BusinessProfileController extends Controller
             'data' => $business
         ]);
     }
+
+    /**
+     * Search business profiles (public)
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $request->validate([
+            'q' => 'required|string|min:1|max:255',
+            'category' => 'nullable|string|max:100',
+            'offering_type' => 'nullable|in:providing_service,selling_product',
+            'state' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'sort' => 'nullable|in:newest,oldest,name_asc,name_desc',
+            'per_page' => 'nullable|integer|min:1|max:50'
+        ]);
+
+        $query = BusinessProfile::where('store_status', 'approved');
+        
+        // Search in business_name and business_description
+        $searchTerm = $request->input('q');
+        $query->where(function($q) use ($searchTerm) {
+            $q->where('business_name', 'like', '%' . $searchTerm . '%')
+              ->orWhere('business_description', 'like', '%' . $searchTerm . '%');
+        });
+
+        // Apply filters
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('offering_type')) {
+            $query->where('offering_type', $request->offering_type);
+        }
+
+        if ($request->filled('state')) {
+            $query->where('state', 'like', '%' . $request->state . '%');
+        }
+
+        if ($request->filled('city')) {
+            $query->where('city', 'like', '%' . $request->city . '%');
+        }
+
+        // Sorting
+        switch ($request->input('sort', 'newest')) {
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'name_asc':
+                $query->orderBy('business_name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('business_name', 'desc');
+                break;
+            case 'newest':
+            default:
+                $query->latest();
+                break;
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $businesses = $query->with('user:id,firstname,lastname')->paginate($perPage);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $businesses
+        ]);
+    }
+
+    /**
+     * Get business profile filters metadata (public)
+     */
+    public function filters(): JsonResponse
+    {
+        $filters = [
+            'categories' => BusinessProfile::where('store_status', 'approved')
+                                          ->distinct()
+                                          ->pluck('category')
+                                          ->filter()
+                                          ->values(),
+            
+            'offering_types' => BusinessProfile::where('store_status', 'approved')
+                                              ->distinct()
+                                              ->pluck('offering_type')
+                                              ->filter()
+                                              ->values(),
+            
+            'states' => BusinessProfile::where('store_status', 'approved')
+                                      ->distinct()
+                                      ->pluck('state')
+                                      ->filter()
+                                      ->values(),
+            
+            'cities' => BusinessProfile::where('store_status', 'approved')
+                                      ->distinct()
+                                      ->pluck('city')
+                                      ->filter()
+                                      ->values(),
+            
+            'sort_options' => [
+                ['value' => 'newest', 'label' => 'Newest First'],
+                ['value' => 'oldest', 'label' => 'Oldest First'],
+                ['value' => 'name_asc', 'label' => 'Name: A to Z'],
+                ['value' => 'name_desc', 'label' => 'Name: Z to A']
+            ]
+        ];
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $filters
+        ]);
+    }
 }

@@ -20,7 +20,8 @@ use App\Http\Controllers\API\NotificationPreferenceController;
 use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\BlogFavoriteController;
 use App\Http\Controllers\API\Admin\AdvertController;
-use App\Http\Controllers\API\Admin\SustainabilityController;
+use App\Http\Controllers\API\Admin\SustainabilityController as AdminSustainabilityController;
+use App\Http\Controllers\API\SustainabilityController;
 use App\Http\Controllers\API\Admin\AdminNotificationController;
 use App\Http\Controllers\API\Admin\AdminSettingsController;
 use Illuminate\Support\Facades\Route;
@@ -107,10 +108,19 @@ Route::post("/webhook/paystack/school", [
 // ============================================
 // PUBLIC BUSINESS PROFILES
 // ============================================
-Route::prefix('business/public')->group(function () {
-    Route::get('/', [BusinessProfileController::class, 'publicIndex']);
-    Route::get('/{id}', [BusinessProfileController::class, 'publicShow']);
+Route::prefix('business')->group(function () {
+    // Public endpoints (no auth required)
+    Route::get('/public', [BusinessProfileController::class, 'publicIndex']);
+    Route::get('/public/search', [BusinessProfileController::class, 'search']);
+    Route::get('/public/filters', [BusinessProfileController::class, 'filters']);
+    Route::get('/public/{id}', [BusinessProfileController::class, 'publicShow']);
+    
+    // Alternative: /api/business/{id} for public access (must be numeric ID)
+    Route::get('/{id}', [BusinessProfileController::class, 'publicShow'])
+        ->where('id', '[0-9]+')
+        ->name('business.public.show');
 });
+
 
 // ============================================
 // PUBLIC PRODUCT BROWSING
@@ -126,6 +136,8 @@ Route::prefix('products')->group(function () {
 // ============================================
 Route::prefix('sustainability')->group(function () {
     Route::get('/', [SustainabilityController::class, 'index']);
+    Route::get('/search', [SustainabilityController::class, 'search']);
+    Route::get('/filters', [SustainabilityController::class, 'filters']);
     Route::get('/{id}', [SustainabilityController::class, 'show']);
 });
 
@@ -270,18 +282,18 @@ Route::middleware("auth:sanctum")->group(function () {
         "uploadFile",
     ]);
 
-    // BUSINESS PROFILE MANAGEMENT
+    // BUSINESS PROFILE MANAGEMENT (authenticated user's own profiles)
     Route::prefix("business")->group(function () {
         Route::get("/", [BusinessProfileController::class, "index"]);
         Route::post("/", [BusinessProfileController::class, "store"]);
-        Route::get("/{id}", [BusinessProfileController::class, "show"]);
-        Route::put("/{id}", [BusinessProfileController::class, "update"]);
-        Route::delete("/{id}", [BusinessProfileController::class, "destroy"]);
-        Route::patch("/{id}/deactivate", [
+        Route::get("/my/{id}", [BusinessProfileController::class, "show"]);
+        Route::put("/my/{id}", [BusinessProfileController::class, "update"]);
+        Route::delete("/my/{id}", [BusinessProfileController::class, "destroy"]);
+        Route::patch("/my/{id}/deactivate", [
             BusinessProfileController::class,
             "deactivate",
         ]);
-        Route::post("/{id}/upload", [
+        Route::post("/my/{id}/upload", [
             BusinessProfileController::class,
             "upload",
         ]);
@@ -442,14 +454,14 @@ Route::middleware(["auth:sanctum", "admin"])
 
         // SUSTAINABILITY MANAGEMENT
         Route::prefix("sustainability")->group(function () {
-            Route::get("/", [SustainabilityController::class, "index"]);
-            Route::post("/", [SustainabilityController::class, "store"]);
+            Route::get("/", [AdminSustainabilityController::class, "index"]);
+            Route::post("/", [AdminSustainabilityController::class, "store"]);
             Route::put("/{sustainabilityInitiative}", [
-                SustainabilityController::class,
+                AdminSustainabilityController::class,
                 "update",
             ]);
             Route::delete("/{sustainabilityInitiative}", [
-                SustainabilityController::class,
+                AdminSustainabilityController::class,
                 "destroy",
             ]);
         });
