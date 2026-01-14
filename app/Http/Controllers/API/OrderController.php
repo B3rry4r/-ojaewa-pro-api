@@ -28,32 +28,41 @@ class OrderController extends Controller
      */
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-        
-        $orders = Order::with(['orderItems.product.sellerProfile'])
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        try {
+            $user = Auth::user();
             
-        return response()->json([
-            'status' => 'success',
-            'data' => $orders->items(),
-            'links' => [
-                'first' => $orders->url(1),
-                'last' => $orders->url($orders->lastPage()),
-                'prev' => $orders->previousPageUrl(),
-                'next' => $orders->nextPageUrl(),
-            ],
-            'meta' => [
-                'current_page' => $orders->currentPage(),
-                'from' => $orders->firstItem(),
-                'last_page' => $orders->lastPage(),
-                'path' => $orders->path(),
-                'per_page' => $orders->perPage(),
-                'to' => $orders->lastItem(),
-                'total' => $orders->total(),
-            ],
-        ]);
+            $orders = Order::with(['orderItems.product.sellerProfile'])
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+                
+            return response()->json([
+                'status' => 'success',
+                'data' => $orders->items(),
+                'links' => [
+                    'first' => $orders->url(1),
+                    'last' => $orders->url($orders->lastPage()),
+                    'prev' => $orders->previousPageUrl(),
+                    'next' => $orders->nextPageUrl(),
+                ],
+                'meta' => [
+                    'current_page' => $orders->currentPage(),
+                    'from' => $orders->firstItem(),
+                    'last_page' => $orders->lastPage(),
+                    'path' => $orders->path(),
+                    'per_page' => $orders->perPage(),
+                    'to' => $orders->lastItem(),
+                    'total' => $orders->total(),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     /**
