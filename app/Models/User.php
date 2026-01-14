@@ -32,7 +32,9 @@ class User extends Authenticatable
         'email_notifications',
         'push_notifications',
         'sms_notifications',
-        'marketing_emails',
+        'order_updates',
+        'promotional_emails',
+        'security_alerts',
     ];
 
     /**

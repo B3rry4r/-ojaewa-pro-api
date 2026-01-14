@@ -31,7 +31,7 @@ class OrderController extends Controller
         try {
             $user = Auth::user();
             
-            $orders = Order::with(['orderItems.product.sellerProfile:id,business_name'])
+            $orders = Order::with(['orderItems.product.sellerProfile'])
                 ->where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
