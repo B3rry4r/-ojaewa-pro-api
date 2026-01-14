@@ -24,6 +24,7 @@ use App\Http\Controllers\API\Admin\SustainabilityController;
 use App\Http\Controllers\API\Admin\AdminNotificationController;
 use App\Http\Controllers\API\Admin\AdminSettingsController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
