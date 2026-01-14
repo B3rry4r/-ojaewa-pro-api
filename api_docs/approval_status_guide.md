@@ -1,0 +1,507 @@
+# Approval Status & Notifications Guide
+
+This document explains how the client-side can track approval statuses for Business Profiles, Seller Profiles, and Products, and how to handle notifications when approvals occur.
+
+---
+
+## Table of Contents
+- [Overview](#overview)
+- [Status Fields by Entity](#status-fields-by-entity)
+- [Checking Approval Status](#checking-approval-status)
+- [Notifications System](#notifications-system)
+- [Recommended Client-Side Implementation](#recommended-client-side-implementation)
+
+---
+
+## Overview
+
+When users create Business Profiles, Seller Profiles, or Products, these entities go through an approval workflow:
+
+1. **User submits** → Status is `pending`
+2. **Admin reviews** → Status becomes `approved` or `rejected`/`deactivated`
+3. **User is notified** → Via push notification and/or email
+4. **User can take action** → Based on approval status
+
+---
+
+## Status Fields by Entity
+
+### Business Profile
+
+| Field | Possible Values | Description |
+|-------|-----------------|-------------|
+| `store_status` | `pending`, `approved`, `deactivated` | Main approval status |
+| `rejection_reason` | `string` or `null` | Reason if deactivated/rejected |
+
+### Seller Profile
+
+| Field | Possible Values | Description |
+|-------|-----------------|-------------|
+| `registration_status` | `pending`, `approved`, `rejected` | Main approval status |
+| `active` | `true`, `false` | Whether seller is active (can be deactivated even if approved) |
+| `rejection_reason` | `string` or `null` | Reason if rejected |
+
+### Product
+
+| Field | Possible Values | Description |
+|-------|-----------------|-------------|
+| `status` | `pending`, `approved`, `rejected` | Main approval status |
+| `rejection_reason` | `string` or `null` | Reason if rejected |
+
+---
+
+## Checking Approval Status
+
+### Get User's Business Profiles
+
+**URL:** `GET /api/business`  
+**Auth:** Required
+
+Returns all business profiles owned by the authenticated user, including their approval status.
+
+#### Response
+```json
+{
+  "status": "success",
+  "message": "Business profiles retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "business_name": "My Beauty Store",
+      "category": "beauty",
+      "store_status": "approved",
+      "rejection_reason": null,
+      "offering_type": "selling_product",
+      ...
+    },
+    {
+      "id": 2,
+      "business_name": "My Fashion Brand",
+      "category": "fashion",
+      "store_status": "pending",
+      "rejection_reason": null,
+      ...
+    }
+  ]
+}
+```
+
+---
+
+### Get User's Seller Profile
+
+**URL:** `GET /api/seller/profile`  
+**Auth:** Required
+
+Returns the authenticated user's seller profile with approval status.
+
+#### Response
+```json
+{
+  "status": "success",
+  "message": "Seller profile retrieved successfully",
+  "data": {
+    "id": 1,
+    "user_id": 5,
+    "business_name": "Fashion House",
+    "registration_status": "approved",
+    "active": true,
+    "rejection_reason": null,
+    "business_email": "seller@example.com",
+    "business_phone_number": "08012345678",
+    ...
+  }
+}
+```
+
+---
+
+### Get User's Products
+
+**URL:** `GET /api/products`  
+**Auth:** Required
+
+Returns all products owned by the authenticated user's seller profile.
+
+#### Response
+```json
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "name": "Traditional Agbada",
+        "status": "approved",
+        "rejection_reason": null,
+        "price": "250.00",
+        ...
+      },
+      {
+        "id": 2,
+        "name": "Modern Kaftan",
+        "status": "pending",
+        "rejection_reason": null,
+        ...
+      },
+      {
+        "id": 3,
+        "name": "Custom Design",
+        "status": "rejected",
+        "rejection_reason": "Product description does not meet guidelines",
+        ...
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Notifications System
+
+When an admin approves or rejects an entity, the user receives notifications.
+
+### Notification Events
+
+| Event | Triggered When | Payload Contains |
+|-------|---------------|------------------|
+| `business_approved` | Business profile is approved or deactivated | `business_id`, `status`, `deep_link` |
+| `order_status_updated` | Order status changes | `order_id`, `status`, `deep_link` |
+
+### Get All Notifications
+
+**URL:** `GET /api/notifications`  
+**Auth:** Required
+
+#### Response
+```json
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "user_id": 5,
+        "type": "push",
+        "event": "business_approved",
+        "title": "Business Approved!",
+        "message": "Congratulations! Your My Beauty Store profile has been approved.",
+        "payload": {
+          "business_id": 1,
+          "status": "approved",
+          "deep_link": "/business/1"
+        },
+        "read_at": null,
+        "created_at": "2026-01-14T15:39:05.000000Z"
+      },
+      {
+        "id": 2,
+        "user_id": 5,
+        "type": "push",
+        "event": "business_approved",
+        "title": "Business Profile Needs Update",
+        "message": "Your Fashion Brand profile needs some updates before approval.",
+        "payload": {
+          "business_id": 2,
+          "status": "deactivated",
+          "deep_link": "/business/2"
+        },
+        "read_at": null,
+        "created_at": "2026-01-14T16:00:00.000000Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Get Unread Notifications Count
+
+**URL:** `GET /api/notifications/unread-count`  
+**Auth:** Required
+
+#### Response
+```json
+{
+  "status": "success",
+  "data": {
+    "unread_count": 3
+  }
+}
+```
+
+---
+
+### Filter Notifications by Event
+
+**URL:** `GET /api/notifications/filter`  
+**Auth:** Required
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | string | Filter by type: `push`, `email` |
+| `event` | string | Filter by event: `business_approved`, `order_status_updated`, etc. |
+| `read` | boolean | Filter by read status: `true` or `false` |
+
+#### Example: Get only approval notifications
+```
+GET /api/notifications/filter?event=business_approved
+```
+
+#### Response
+```json
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "event": "business_approved",
+        "title": "Business Approved!",
+        "message": "Congratulations! Your My Beauty Store profile has been approved.",
+        "payload": {
+          "business_id": 1,
+          "status": "approved",
+          "deep_link": "/business/1"
+        },
+        "read_at": null
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Mark Notification as Read
+
+**URL:** `PATCH /api/notifications/{id}/read`  
+**Auth:** Required
+
+#### Response
+```json
+{
+  "status": "success",
+  "message": "Notification marked as read",
+  "data": {
+    "id": 1,
+    "read_at": "2026-01-14T16:30:00.000000Z",
+    ...
+  }
+}
+```
+
+---
+
+### Mark All Notifications as Read
+
+**URL:** `PATCH /api/notifications/read-all`  
+**Auth:** Required
+
+#### Response
+```json
+{
+  "status": "success",
+  "message": "Marked 5 notifications as read"
+}
+```
+
+---
+
+### Delete Notification
+
+**URL:** `DELETE /api/notifications/{id}`  
+**Auth:** Required
+
+#### Response
+```json
+{
+  "status": "success",
+  "message": "Notification deleted"
+}
+```
+
+---
+
+## Recommended Client-Side Implementation
+
+### 1. Polling for Status Changes
+
+The client should periodically check:
+
+```javascript
+// Check business profile status
+const checkBusinessStatus = async () => {
+  const response = await fetch('/api/business', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  
+  data.data.forEach(business => {
+    if (business.store_status === 'approved') {
+      // Enable full business features
+      enableBusinessFeatures(business.id);
+    } else if (business.store_status === 'pending') {
+      // Show pending message
+      showPendingStatus(business.id);
+    } else if (business.store_status === 'deactivated') {
+      // Show rejection reason and allow resubmission
+      showRejection(business.id, business.rejection_reason);
+    }
+  });
+};
+
+// Check seller profile status
+const checkSellerStatus = async () => {
+  const response = await fetch('/api/seller/profile', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  
+  if (data.data.registration_status === 'approved' && data.data.active) {
+    // Enable selling features
+    enableSellingFeatures();
+  } else if (data.data.registration_status === 'rejected') {
+    // Show rejection and allow edit
+    showSellerRejection(data.data.rejection_reason);
+  }
+};
+
+// Check product statuses
+const checkProductStatuses = async () => {
+  const response = await fetch('/api/products', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  
+  data.data.data.forEach(product => {
+    switch (product.status) {
+      case 'approved':
+        // Product is live and visible to buyers
+        markProductLive(product.id);
+        break;
+      case 'pending':
+        // Show pending review status
+        markProductPending(product.id);
+        break;
+      case 'rejected':
+        // Show rejection reason, allow edit and resubmit
+        markProductRejected(product.id, product.rejection_reason);
+        break;
+    }
+  });
+};
+```
+
+### 2. Listening for Notifications
+
+```javascript
+// Poll for new notifications
+const checkNotifications = async () => {
+  const response = await fetch('/api/notifications/unread-count', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  
+  if (data.data.unread_count > 0) {
+    // Fetch new notifications
+    const notifResponse = await fetch('/api/notifications/filter?read=false', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const notifications = await notifResponse.json();
+    
+    notifications.data.data.forEach(notification => {
+      // Handle by event type
+      switch (notification.event) {
+        case 'business_approved':
+          handleBusinessApproval(notification);
+          break;
+        case 'order_status_updated':
+          handleOrderUpdate(notification);
+          break;
+      }
+      
+      // Show notification to user
+      showNotification(notification.title, notification.message);
+    });
+  }
+};
+
+// Run every 30 seconds
+setInterval(checkNotifications, 30000);
+```
+
+### 3. Using Deep Links from Notifications
+
+The `payload.deep_link` field in notifications provides navigation hints:
+
+```javascript
+const handleNotificationClick = (notification) => {
+  const deepLink = notification.payload?.deep_link;
+  
+  if (deepLink) {
+    // Navigate to the relevant page
+    // e.g., "/business/1" -> go to business profile page
+    // e.g., "/orders/5" -> go to order details page
+    router.push(deepLink);
+  }
+  
+  // Mark as read
+  fetch(`/api/notifications/${notification.id}/read`, {
+    method: 'PATCH',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+};
+```
+
+---
+
+## Summary: Actions Enabled by Approval Status
+
+### Business Profile
+
+| Status | User Can |
+|--------|----------|
+| `pending` | View, Edit (limited) |
+| `approved` | Full access, visible publicly, manage business |
+| `deactivated` | View rejection reason, Edit and resubmit |
+
+### Seller Profile
+
+| Status | User Can |
+|--------|----------|
+| `pending` | View, Edit (limited) |
+| `approved` + `active=true` | Create/manage products, receive orders |
+| `approved` + `active=false` | View only (admin deactivated) |
+| `rejected` | View rejection reason, Edit and resubmit |
+
+### Product
+
+| Status | User Can |
+|--------|----------|
+| `pending` | View, Edit |
+| `approved` | Product is live, visible to buyers |
+| `rejected` | View rejection reason, Edit and resubmit |
+
+---
+
+## API Endpoints Quick Reference
+
+| Action | Method | Endpoint | Auth |
+|--------|--------|----------|------|
+| Get my business profiles | GET | `/api/business` | Yes |
+| Get my seller profile | GET | `/api/seller/profile` | Yes |
+| Get my products | GET | `/api/products` | Yes |
+| Get all notifications | GET | `/api/notifications` | Yes |
+| Get unread count | GET | `/api/notifications/unread-count` | Yes |
+| Filter notifications | GET | `/api/notifications/filter` | Yes |
+| Mark as read | PATCH | `/api/notifications/{id}/read` | Yes |
+| Mark all as read | PATCH | `/api/notifications/read-all` | Yes |
+| Delete notification | DELETE | `/api/notifications/{id}` | Yes |
