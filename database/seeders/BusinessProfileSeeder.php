@@ -81,8 +81,8 @@ class BusinessProfileSeeder extends Seeder
                     'instagram' => '@' . strtolower(str_replace(' ', '', $data['business_name'])),
                 ]);
             } elseif ($category === 'school') {
-                    'business_logo' => 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=400&fit=crop',
                 $data = array_merge($data, [
+                    'business_logo' => 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=400&fit=crop',
                     'school_type' => fake()->randomElement(['fashion', 'music', 'catering', 'beauty']),
                     'school_biography' => fake()->paragraphs(2, true),
                     'classes_offered' => json_encode([
@@ -93,8 +93,8 @@ class BusinessProfileSeeder extends Seeder
                     'website_url' => 'https://www.' . strtolower(str_replace(' ', '', $data['business_name'])) . '.edu',
                 ]);
             } elseif ($category === 'music') {
-                    'business_logo' => 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop',
                 $data = array_merge($data, [
+                    'business_logo' => 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop',
                     'music_category' => fake()->randomElement(['dj', 'artist', 'producer']),
                     'identity_document' => null, // Optional field, can be uploaded later
                     'youtube' => 'https://youtube.com/' . strtolower(str_replace(' ', '', $data['business_name'])),
