@@ -42,15 +42,23 @@ class SustainabilityController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $initiative = SustainabilityInitiative::where('id', $id)
-                                             ->where('status', 'active')
-                                             ->with('admin:id,firstname,lastname')
-                                             ->firstOrFail();
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Sustainability initiative retrieved successfully',
-            'data' => $initiative
-        ]);
+        try {
+            $initiative = SustainabilityInitiative::where('id', $id)
+                                                 ->where('status', 'active')
+                                                 ->with('admin:id,firstname,lastname')
+                                                 ->firstOrFail();
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Sustainability initiative retrieved successfully',
+                'data' => $initiative
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve sustainability initiative',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], 500);
+        }
     }
 }
