@@ -44,7 +44,7 @@ class BusinessProfileSeeder extends Seeder
                 'business_phone_number' => fake()->phoneNumber(),
                 'business_name' => fake()->company() . ' ' . ucfirst($category),
                 'business_description' => fake()->paragraph(3),
-                'store_status' => fake()->randomElement(['pending', 'approved']),
+                'store_status' => 'approved',
                 'subscription_status' => 'active',
                 'subscription_ends_at' => now()->addDays(30),
             ];
