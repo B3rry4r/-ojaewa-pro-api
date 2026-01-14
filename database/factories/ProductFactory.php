@@ -31,7 +31,7 @@ class ProductFactory extends Factory
             'style' => $this->faker->randomElement($africanStyles),
             'tribe' => $this->faker->randomElement($africanTribes),
             'description' => fake()->paragraphs(2, true),
-            'image' => 'https://via.placeholder.com/500x500.png?text=African+Style+Fashion',
+            'image' => 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=500&h=500&fit=crop',
             'size' => $this->faker->randomElement($sizes),
             'processing_time_type' => $this->faker->randomElement(['normal', 'quick_quick']),
             'processing_days' => $this->faker->numberBetween(2, 14),

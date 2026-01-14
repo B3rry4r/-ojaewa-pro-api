@@ -59,7 +59,7 @@ class BusinessProfileSeeder extends Seeder
                         ['name' => 'Nail Art', 'price' => 3000]
                     ]),
                     'professional_title' => 'Beauty Expert',
-                    'business_logo' => 'storage/logos/beauty_logo.jpg',
+                    'business_logo' => 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop',
                 ]);
             } elseif ($category === 'brand') {
                 $data = array_merge($data, [
@@ -73,7 +73,7 @@ class BusinessProfileSeeder extends Seeder
                         'business_registration.pdf',
                         'tax_clearance.pdf'
                     ]),
-                    'business_logo' => 'storage/logos/brand_logo.jpg',
+                    'business_logo' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop',
                     'website_url' => 'https://www.' . strtolower(str_replace(' ', '', $data['business_name'])) . '.com',
                     'instagram' => '@' . strtolower(str_replace(' ', '', $data['business_name'])),
                 ]);
@@ -91,7 +91,7 @@ class BusinessProfileSeeder extends Seeder
             } elseif ($category === 'music') {
                 $data = array_merge($data, [
                     'music_category' => fake()->randomElement(['dj', 'artist', 'producer']),
-                    'identity_document' => 'storage/documents/id_' . str_replace(' ', '_', strtolower($data['business_name'])) . '.pdf',
+                    'identity_document' => null, // Optional field, can be uploaded later
                     'youtube' => 'https://youtube.com/' . strtolower(str_replace(' ', '', $data['business_name'])),
                     'spotify' => 'https://spotify.com/artist/' . strtolower(str_replace(' ', '', $data['business_name'])),
                 ]);
