@@ -105,9 +105,9 @@ Route::prefix('business/public')->group(function () {
 // PUBLIC PRODUCT BROWSING
 // ============================================
 Route::prefix('products')->group(function () {
-    Route::get('/browse', [ProductController::class, 'browse']);
-    Route::get('/filters', [ProductController::class, 'filters']);
-    Route::get('/public/{id}', [ProductController::class, 'publicShow']);
+    Route::get('/browse', [APIProductController::class, 'browse']);
+    Route::get('/filters', [APIProductController::class, 'filters']);
+    Route::get('/public/{id}', [APIProductController::class, 'publicShow']);
 });
 
 // ============================================
