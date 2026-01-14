@@ -26,10 +26,12 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->integer('quantity')->default(1);
             $table->decimal('unit_price', 10, 2);
+            $table->string('selected_size')->nullable();
+            $table->enum('processing_time_type', ['normal', 'express'])->default('normal');
             $table->timestamps();
             
-            // Prevent duplicate products in same cart
-            $table->unique(['cart_id', 'product_id']);
+            // Unique constraint on cart + product + size + processing type
+            $table->unique(['cart_id', 'product_id', 'selected_size', 'processing_time_type'], 'cart_items_unique');
         });
     }
 
