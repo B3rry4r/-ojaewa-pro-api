@@ -38,7 +38,7 @@ class NotificationPreferenceController extends Controller
      */
     public function update(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'email_notifications' => 'sometimes|boolean',
             'push_notifications' => 'sometimes|boolean',
             'sms_notifications' => 'sometimes|boolean',
@@ -49,21 +49,12 @@ class NotificationPreferenceController extends Controller
 
         $user = Auth::user();
         
-        $updateData = array_intersect_key($request->validated(), array_flip([
-            'email_notifications',
-            'push_notifications', 
-            'sms_notifications',
-            'order_updates',
-            'promotional_emails',
-            'security_alerts'
-        ]));
-
-        $user->update($updateData);
+        $user->update($validated);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Notification preferences updated successfully',
-            'data' => $updateData
+            'data' => $validated
         ]);
     }
 }
