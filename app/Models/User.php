@@ -29,6 +29,10 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'email_notifications',
+        'push_notifications',
+        'sms_notifications',
+        'marketing_emails',
     ];
 
     /**
