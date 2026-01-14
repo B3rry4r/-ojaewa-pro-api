@@ -174,7 +174,6 @@ class SellerProfileController extends Controller
             'type' => $type
         ]);
     }
-}
 
     /**
      * Get public seller profile details
