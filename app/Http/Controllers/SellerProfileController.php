@@ -175,3 +175,83 @@ class SellerProfileController extends Controller
         ]);
     }
 }
+
+    /**
+     * Get public seller profile details
+     */
+    public function publicShow(int $id): JsonResponse
+    {
+        try {
+            $seller = SellerProfile::where('id', $id)
+                ->where('registration_status', 'approved')
+                ->where('active', true)
+                ->firstOrFail();
+            
+            // Calculate seller statistics
+            $avgRating = $seller->products()
+                ->whereHas('reviews')
+                ->with('reviews')
+                ->get()
+                ->flatMap(fn($product) => $product->reviews)
+                ->avg('rating');
+            
+            $totalReviews = $seller->products()
+                ->withCount('reviews')
+                ->get()
+                ->sum('reviews_count');
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'id' => $seller->id,
+                    'business_name' => $seller->business_name,
+                    'business_logo' => $seller->business_logo,
+                    'business_email' => $seller->business_email,
+                    'business_phone_number' => $seller->business_phone_number,
+                    'city' => $seller->city,
+                    'state' => $seller->state,
+                    'country' => $seller->country,
+                    'instagram' => $seller->instagram,
+                    'facebook' => $seller->facebook,
+                    'selling_since' => $seller->created_at,
+                    'avg_rating' => round($avgRating ?: 0, 1),
+                    'total_reviews' => $totalReviews,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Seller not found or not active'
+            ], 404);
+        }
+    }
+    
+    /**
+     * Get products from a specific seller
+     */
+    public function products(int $id): JsonResponse
+    {
+        try {
+            $seller = SellerProfile::where('id', $id)
+                ->where('registration_status', 'approved')
+                ->where('active', true)
+                ->firstOrFail();
+            
+            $products = $seller->products()
+                ->where('status', 'approved')
+                ->with('sellerProfile:id,business_name')
+                ->orderBy('created_at', 'desc')
+                ->paginate(15);
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => $products
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Seller not found or not active'
+            ], 404);
+        }
+    }
+}

@@ -460,3 +460,11 @@ Route::middleware(["auth:sanctum", "admin"])
         Route::get("/settings", [AdminSettingsController::class, "show"]);
         Route::put("/settings", [AdminSettingsController::class, "update"]);
     });
+
+// ============================================
+// PUBLIC SELLER PROFILE ENDPOINTS
+// ============================================
+Route::prefix('sellers')->group(function () {
+    Route::get('/{id}', [SellerProfileController::class, 'publicShow']);
+    Route::get('/{id}/products', [SellerProfileController::class, 'products']);
+});
