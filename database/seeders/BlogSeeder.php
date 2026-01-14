@@ -402,6 +402,7 @@ African e-commerce is not just about replicating global models—it\'s about cre
                 'body' => $blog['body'],
                 'featured_image' => $blog['featured_image'],
                 'published_at' => $blog['published_at'],
+                'is_published' => true,
                 'admin_id' => $admin ? $admin->id : null,
             ]);
         }
