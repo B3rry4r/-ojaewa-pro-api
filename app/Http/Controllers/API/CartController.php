@@ -53,7 +53,9 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
+            'selected_size' => 'nullable|string',
+            'processing_time_type' => 'nullable|in:normal,express'
         ]);
         
         $user = Auth::user();
@@ -63,9 +65,11 @@ class CartController extends Controller
                          ->where('status', 'approved')
                          ->firstOrFail();
         
-        // Check if item already exists
+        // Check if item with same product, size, and processing type already exists
         $existingItem = CartItem::where('cart_id', $cart->id)
                                 ->where('product_id', $product->id)
+                                ->where('selected_size', $request->selected_size)
+                                ->where('processing_time_type', $request->processing_time_type ?? 'normal')
                                 ->first();
         
         if ($existingItem) {
@@ -79,7 +83,9 @@ class CartController extends Controller
                 'cart_id' => $cart->id,
                 'product_id' => $product->id,
                 'quantity' => $request->quantity,
-                'unit_price' => $product->price
+                'unit_price' => $product->price,
+                'selected_size' => $request->selected_size,
+                'processing_time_type' => $request->processing_time_type ?? 'normal'
             ]);
         }
         
