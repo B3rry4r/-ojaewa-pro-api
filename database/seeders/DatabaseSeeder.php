@@ -13,7 +13,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create additional test users beyond what factories create
+        // Create FIXED test user with known credentials (always first)
+        User::create([
+            'firstname' => 'Test',
+            'lastname' => 'User',
+            'email' => 'test@ojaewa.com',
+            'password' => Hash::make('password123'),
+            'phone' => '+2348012345678',
+            'email_verified_at' => now(),
+        ]);
+        
+        $this->command->info('✓ Created fixed test user: test@ojaewa.com / password123');
+        
+        // Create additional random test users
         User::factory(10)->create();
         
         // Create admin and other records with comprehensive data
