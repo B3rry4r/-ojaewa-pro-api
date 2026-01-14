@@ -59,7 +59,8 @@ class OrderController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to retrieve orders',
-                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+                'error' => $e->getMessage(),
+                'trace' => $e->getFile() . ':' . $e->getLine()
             ], 500);
         }
     }
