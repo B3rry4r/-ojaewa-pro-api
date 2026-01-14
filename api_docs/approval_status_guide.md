@@ -168,6 +168,8 @@ When an admin approves or rejects an entity, the user receives notifications.
 | Event | Triggered When | Payload Contains |
 |-------|---------------|------------------|
 | `business_approved` | Business profile is approved or deactivated | `business_id`, `status`, `deep_link` |
+| `seller_approved` | Seller profile is approved or rejected | `seller_id`, `status`, `deep_link` |
+| `product_approved` | Product is approved or rejected | `product_id`, `status`, `deep_link` |
 | `order_status_updated` | Order status changes | `order_id`, `status`, `deep_link` |
 
 ### Get All Notifications
@@ -201,16 +203,46 @@ When an admin approves or rejects an entity, the user receives notifications.
         "id": 2,
         "user_id": 5,
         "type": "push",
-        "event": "business_approved",
-        "title": "Business Profile Needs Update",
-        "message": "Your Fashion Brand profile needs some updates before approval.",
+        "event": "seller_approved",
+        "title": "Seller Profile Approved!",
+        "message": "Congratulations! Your seller profile 'Fashion House' has been approved. You can now start listing products!",
         "payload": {
-          "business_id": 2,
-          "status": "deactivated",
-          "deep_link": "/business/2"
+          "seller_id": 1,
+          "status": "approved",
+          "deep_link": "/seller/profile"
         },
         "read_at": null,
         "created_at": "2026-01-14T16:00:00.000000Z"
+      },
+      {
+        "id": 3,
+        "user_id": 5,
+        "type": "push",
+        "event": "product_approved",
+        "title": "Product Approved!",
+        "message": "Great news! Your product 'Traditional Agbada' has been approved and is now live!",
+        "payload": {
+          "product_id": 1,
+          "status": "approved",
+          "deep_link": "/products/1"
+        },
+        "read_at": null,
+        "created_at": "2026-01-14T16:30:00.000000Z"
+      },
+      {
+        "id": 4,
+        "user_id": 5,
+        "type": "push",
+        "event": "product_approved",
+        "title": "Product Needs Update",
+        "message": "Your product 'Modern Kaftan' needs some updates before approval.",
+        "payload": {
+          "product_id": 2,
+          "status": "rejected",
+          "deep_link": "/products/2"
+        },
+        "read_at": null,
+        "created_at": "2026-01-14T17:00:00.000000Z"
       }
     ]
   }
@@ -422,6 +454,12 @@ const checkNotifications = async () => {
       switch (notification.event) {
         case 'business_approved':
           handleBusinessApproval(notification);
+          break;
+        case 'seller_approved':
+          handleSellerApproval(notification);
+          break;
+        case 'product_approved':
+          handleProductApproval(notification);
           break;
         case 'order_status_updated':
           handleOrderUpdate(notification);

@@ -4,11 +4,18 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class AdminProductController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * List all products paginated
      *
@@ -103,17 +110,45 @@ class AdminProductController extends Controller
             "rejection_reason" => "required_if:status,rejected|string|nullable",
         ]);
 
-        $product = Product::findOrFail($id);
-        $product->status = $request->status;
+        $product = Product::with('sellerProfile.user')->findOrFail($id);
+        $oldStatus = $product->status;
+        $newStatus = $request->status;
+        
+        $product->status = $newStatus;
 
         if (
-            $request->status === "rejected" &&
+            $newStatus === "rejected" &&
             $request->has("rejection_reason")
         ) {
             $product->rejection_reason = $request->rejection_reason;
         }
 
         $product->save();
+
+        // Send notification if status changed
+        if ($oldStatus !== $newStatus && $product->sellerProfile && $product->sellerProfile->user) {
+            $user = $product->sellerProfile->user;
+            
+            $this->notificationService->sendEmailAndPush(
+                $user,
+                'Product Update - Oja Ewa',
+                'product_approved',
+                $newStatus === 'approved' ? 'Product Approved!' : 'Product Needs Update',
+                $newStatus === 'approved' 
+                    ? "Great news! Your product '{$product->name}' has been approved and is now live!"
+                    : "Your product '{$product->name}' needs some updates before approval.",
+                [
+                    'product' => $product,
+                    'status' => $newStatus,
+                    'rejectionReason' => $product->rejection_reason
+                ],
+                [
+                    'product_id' => $product->id,
+                    'status' => $newStatus,
+                    'deep_link' => "/products/{$product->id}"
+                ]
+            );
+        }
 
         return response()->json([
             "status" => "success",

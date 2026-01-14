@@ -4,11 +4,19 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SellerProfile;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class AdminSellerController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * List all seller profiles paginated
      *
@@ -101,17 +109,43 @@ class AdminSellerController extends Controller
             "rejection_reason" => "required_if:status,rejected|string|nullable",
         ]);
 
-        $seller = SellerProfile::findOrFail($id);
-        $seller->registration_status = $request->status;
+        $seller = SellerProfile::with('user')->findOrFail($id);
+        $oldStatus = $seller->registration_status;
+        $newStatus = $request->status;
+        
+        $seller->registration_status = $newStatus;
 
         if (
-            $request->status === "rejected" &&
+            $newStatus === "rejected" &&
             $request->has("rejection_reason")
         ) {
             $seller->rejection_reason = $request->rejection_reason;
         }
 
         $seller->save();
+
+        // Send notification if status changed
+        if ($oldStatus !== $newStatus && $seller->user) {
+            $this->notificationService->sendEmailAndPush(
+                $seller->user,
+                'Seller Profile Update - Oja Ewa',
+                'seller_approved',
+                $newStatus === 'approved' ? 'Seller Profile Approved!' : 'Seller Profile Needs Update',
+                $newStatus === 'approved' 
+                    ? "Congratulations! Your seller profile '{$seller->business_name}' has been approved. You can now start listing products!"
+                    : "Your seller profile '{$seller->business_name}' needs some updates before approval.",
+                [
+                    'seller' => $seller,
+                    'status' => $newStatus,
+                    'rejectionReason' => $seller->rejection_reason
+                ],
+                [
+                    'seller_id' => $seller->id,
+                    'status' => $newStatus,
+                    'deep_link' => "/seller/profile"
+                ]
+            );
+        }
 
         return response()->json([
             "status" => "success",
