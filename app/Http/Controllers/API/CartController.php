@@ -17,20 +17,33 @@ class CartController extends Controller
      */
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-        $cart = Cart::firstOrCreate(['user_id' => $user->id]);
-        
-        $cart->load(['items.product.sellerProfile:id,business_name']);
-        
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'cart_id' => $cart->id,
-                'items' => $cart->items,
-                'total' => $cart->total,
-                'items_count' => $cart->items_count
-            ]
-        ]);
+        try {
+            $user = Auth::user();
+            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+            
+            // Explicitly load relationships
+            $cart->load(['items' => function($query) {
+                $query->with(['product' => function($q) {
+                    $q->with('sellerProfile:id,business_name');
+                }]);
+            }]);
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'cart_id' => $cart->id,
+                    'items' => $cart->items,
+                    'total' => $cart->total,
+                    'items_count' => $cart->items_count
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve cart',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], 500);
+        }
     }
     
     /**

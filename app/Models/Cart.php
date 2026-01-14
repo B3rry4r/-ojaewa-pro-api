@@ -25,6 +25,11 @@ class Cart extends Model
      */
     public function getTotalAttribute(): float
     {
+        // Check if items are loaded to avoid N+1 query
+        if (!$this->relationLoaded('items')) {
+            $this->load('items');
+        }
+        
         return $this->items->sum(function ($item) {
             return $item->unit_price * $item->quantity;
         });
@@ -35,6 +40,11 @@ class Cart extends Model
      */
     public function getItemsCountAttribute(): int
     {
+        // Check if items are loaded to avoid N+1 query
+        if (!$this->relationLoaded('items')) {
+            $this->load('items');
+        }
+        
         return $this->items->sum('quantity');
     }
 }

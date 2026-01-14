@@ -19,7 +19,8 @@ class CartItem extends Model
         'unit_price' => 'decimal:2'
     ];
     
-    protected $with = ['product'];
+    // Removed automatic eager loading - load explicitly when needed
+    // protected $with = ['product'];
     
     public function cart(): BelongsTo
     {
