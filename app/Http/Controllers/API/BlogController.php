@@ -30,34 +30,40 @@ class BlogController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $blog = Blog::where('slug', $slug)
-            ->published()
-            ->with('admin:id,firstname,lastname')
-            ->first();
+        try {
+            $blog = Blog::where('slug', $slug)
+                ->published()
+                ->with('admin:id,firstname,lastname,email')
+                ->first();
 
-        if (!$blog) {
+            if (!$blog) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Blog post not found',
+                ], 404);
+            }
+
+            // Get related blog posts (same category or similar tags)
+            $relatedPosts = Blog::published()
+                ->where('id', '!=', $blog->id)
+                ->where('category', $blog->category)
+                ->with('admin:id,firstname,lastname')
+                ->latest('published_at')
+                ->take(3)
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $blog,
+                'related_posts' => $relatedPosts
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Blog post not found',
-            ], 404);
+                'message' => 'Failed to retrieve blog post',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], 500);
         }
-
-        // Get related blog posts (same category or similar tags)
-        $relatedPosts = Blog::published()
-            ->where('id', '!=', $blog->id)
-            ->where('category', $blog->category)
-            ->with('admin:id,firstname,lastname')
-            ->latest('published_at')
-            ->take(3)
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'blog' => $blog,
-                'related_posts' => $relatedPosts
-            ],
-        ]);
     }
 
     /**
