@@ -12,6 +12,7 @@ use App\Http\Controllers\API\ConnectController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\AddressController;
+use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\SchoolController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Admin\SchoolRegistrationController;
