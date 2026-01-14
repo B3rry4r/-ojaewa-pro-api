@@ -43,10 +43,12 @@ class BlogController extends Controller
                 ], 404);
             }
 
-            // Get related blog posts (same category or similar tags)
+            // Get related blog posts (same category or just latest if no category)
             $relatedPosts = Blog::published()
                 ->where('id', '!=', $blog->id)
-                ->where('category', $blog->category)
+                ->when($blog->category, function($query) use ($blog) {
+                    $query->where('category', $blog->category);
+                })
                 ->with('admin:id,firstname,lastname')
                 ->latest('published_at')
                 ->take(3)
