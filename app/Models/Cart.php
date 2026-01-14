@@ -30,7 +30,11 @@ class Cart extends Model
             $this->load('items');
         }
         
-        return $this->items->sum(function ($item) {
+        if ($this->items->isEmpty()) {
+            return 0.0;
+        }
+        
+        return (float) $this->items->sum(function ($item) {
             return $item->unit_price * $item->quantity;
         });
     }
@@ -43,6 +47,10 @@ class Cart extends Model
         // Check if items are loaded to avoid N+1 query
         if (!$this->relationLoaded('items')) {
             $this->load('items');
+        }
+        
+        if ($this->items->isEmpty()) {
+            return 0;
         }
         
         return $this->items->sum('quantity');
