@@ -63,6 +63,15 @@ Route::prefix("blogs")->group(function () {
     Route::get("/", [BlogController::class, "index"]);
     Route::get("/latest", [BlogController::class, "latest"]);
     Route::get("/search", [BlogController::class, "search"]);
+    
+    // Authenticated blog favorites routes (must come before {slug} route)
+    Route::middleware('auth:sanctum')->prefix("favorites")->group(function () {
+        Route::get("/", [BlogFavoriteController::class, "index"]);
+        Route::post("/", [BlogFavoriteController::class, "store"]);
+        Route::delete("/", [BlogFavoriteController::class, "destroy"]);
+    });
+    
+    // IMPORTANT: Keep {slug} route last to avoid catching other routes
     Route::get("/{slug}", [BlogController::class, "show"]);
 });
 
@@ -240,11 +249,7 @@ Route::middleware("auth:sanctum")->group(function () {
     });
 
     // BLOG FAVORITES
-    Route::prefix("blogs/favorites")->group(function () {
-        Route::get("/", [BlogFavoriteController::class, "index"]);
-        Route::post("/", [BlogFavoriteController::class, "store"]);
-        Route::delete("/", [BlogFavoriteController::class, "destroy"]);
-    });
+    // Blog favorites routes moved to public blogs prefix group above to avoid route conflict
 
     // =============================================================================
     // SELLER ENDPOINTS (Authenticated Users with Seller Profiles)

@@ -42,7 +42,7 @@ For fashion enthusiasts looking to incorporate African elements into their wardr
 The future of African fashion looks bright, with young designers using technology and social media to reach global audiences. E-commerce platforms are making it easier than ever to purchase authentic African fashion pieces directly from the continent.
 
 African fashion is more than just clothing—it\'s a celebration of culture, craftsmanship, and creativity. By supporting African designers and brands, we\'re not just buying clothes; we\'re investing in communities and preserving cultural heritage for future generations.',
-                'featured_image' => 'https://via.placeholder.com/800x600.png?text=African+Fashion+Blog',
+                'featured_image' => 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&h=600&fit=crop',
                 'published_at' => Carbon::now()->subDays(5),
             ],
             [
@@ -86,7 +86,7 @@ For consumers interested in sustainable African fashion, consider:
 - Learning about proper care to extend garment lifespan
 
 The future of fashion is sustainable, and Africa is leading the way. By supporting sustainable African fashion brands, consumers can make a positive impact on both the environment and local communities while enjoying beautifully crafted, meaningful clothing.',
-                'featured_image' => 'https://via.placeholder.com/800x600.png?text=Sustainable+Fashion',
+                'featured_image' => 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=600&fit=crop',
                 'published_at' => Carbon::now()->subDays(12),
             ],
             [
@@ -133,7 +133,7 @@ Today, these traditional ingredients are being incorporated into modern skincare
 The beauty industry is finally recognizing what African women have known for generations—nature provides some of the most effective skincare ingredients. By incorporating these time-tested ingredients into your routine, you\'re not just caring for your skin; you\'re connecting with centuries of beauty wisdom.
 
 As the clean beauty movement continues to grow, African natural ingredients are poised to play an increasingly important role in global skincare. Supporting brands that ethically source these ingredients helps ensure that the communities that have preserved this knowledge for generations benefit from its commercialization.',
-                'featured_image' => 'https://via.placeholder.com/800x600.png?text=African+Beauty+Secrets',
+                'featured_image' => 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&h=600&fit=crop',
                 'published_at' => Carbon::now()->subDays(18),
             ],
             [
@@ -244,7 +244,7 @@ By choosing handmade African products, you become part of a movement that values
 - Community over corporation
 
 Your purchasing decisions have power. Use that power to support African artisans and communities, and you\'ll own beautiful, meaningful products while making a positive impact on the world.',
-                'featured_image' => 'https://via.placeholder.com/800x600.png?text=African+Artisans',
+                'featured_image' => 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=600&fit=crop',
                 'published_at' => Carbon::now()->subDays(25),
             ],
             [
@@ -390,7 +390,7 @@ The future of African e-commerce is bright, with young entrepreneurs leading inn
 - Creating inclusive platforms that serve all segments of society
 
 African e-commerce is not just about replicating global models—it\'s about creating uniquely African solutions that address local challenges while connecting the continent to global opportunities. The next decade will be transformative for African commerce, with e-commerce playing a central role in the continent\'s economic development.',
-                'featured_image' => 'https://via.placeholder.com/800x600.png?text=African+E-commerce',
+                'featured_image' => 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=600&fit=crop',
                 'published_at' => Carbon::now()->subDays(30),
             ],
         ];

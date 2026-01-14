@@ -53,7 +53,7 @@ class SustainabilityInitiativeSeeder extends Seeder
                 'created_by' => $admin->id,
                 'title' => $initiativeData['title'],
                 'description' => $initiativeData['description'],
-                'image_url' => 'https://via.placeholder.com/600x400?text=' . urlencode($initiativeData['title']),
+                'image_url' => 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&h=400&fit=crop',
                 'category' => $initiativeData['category'],
                 'status' => 'active',
                 'target_amount' => $initiativeData['target_amount'],
