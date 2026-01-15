@@ -22,7 +22,7 @@ class StoreBusinessProfileRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'category' => 'required|string|in:beauty,brand,school,music',
+            'category' => 'required|string|in:beauty,brand,school,music,fashion',
             'country' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'city' => 'required|string|max:100',
@@ -53,6 +53,9 @@ class StoreBusinessProfileRequest extends FormRequest
         ];
 
         // Conditional validations based on offering_type
+        // NOTE: Files (business_certificates, identity_document, business_logo) are uploaded 
+        // AFTER business creation via POST /api/business/{id}/upload endpoint.
+        // Therefore, they are NOT required at creation time.
         if ($this->offering_type === 'providing_service') {
             $rules['service_list'] = 'required|json';
             $rules['professional_title'] = 'required|string|max:100';
@@ -60,7 +63,7 @@ class StoreBusinessProfileRequest extends FormRequest
 
         if ($this->offering_type === 'selling_product') {
             $rules['product_list'] = 'required|json';
-            $rules['business_certificates'] = 'required|json';
+            // business_certificates uploaded after creation via /api/business/{id}/upload
         }
 
         // Conditional validations based on category
@@ -72,7 +75,7 @@ class StoreBusinessProfileRequest extends FormRequest
 
         if ($this->category === 'music') {
             $rules['music_category'] = 'required|string|in:dj,artist,producer';
-            $rules['identity_document'] = 'required|string|max:255';
+            // identity_document uploaded after creation via /api/business/{id}/upload
             
             // At least one of youtube or spotify is required
             if (empty($this->youtube) && empty($this->spotify)) {

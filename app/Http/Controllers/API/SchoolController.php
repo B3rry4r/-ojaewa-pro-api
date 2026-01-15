@@ -75,7 +75,7 @@ class SchoolController extends Controller
             'amount' => $this->paystackService->convertToKobo($amount),
             'reference' => $reference,
             'currency' => 'NGN',
-            'callback_url' => config('app.frontend_url') . '/school/payment/callback',
+            'callback_url' => 'ojaewa://school/payment/callback',
             'metadata' => [
                 'registration_id' => $registration->id,
                 'payment_type' => 'school_registration',

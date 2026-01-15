@@ -59,7 +59,7 @@ Get service reviews
 Store/write a review for a service (rating, headline, description)
 
 —Brands—
-Get brand categories Get category products (after we get products, the flow for this follows what we did for market until the user checks out, so the same endpoints should work) (products should have an average review value added and returned)
+Get brand categoriesGet category products (after we get products, the flow for this follows what we did for market until the user checks out, so the same endpoints should work) (products should have an average review value added and returned)
 
 —Schools—
 Get school categories
@@ -91,7 +91,7 @@ Edit profile (first name, last name, email, phone)
 Your orders (get orders, get an order, write review for an order, get order tracking status)
 Addresses (get addresses, get an address, edit address)
 Password (update password)
-Notifications (all stored in a table called notifications for the user, data is allow push notifications, new products, new blog posts, discount and sales, new orders, so we return the default values for all of this, update request to update their states) Connect (get pre set instagram, Facebook, twitter links)
+Notifications (all stored in a table called notifications for the user, data is allow push notifications, new products, new blog posts, discount and sales, new orders, so we return the default values for all of this, update request to update their states)Connect (get pre set instagram, Facebook, twitter links)
 FAQs (get faqs)
 
  —Wishlist—
@@ -133,7 +133,7 @@ Additonal details in a seller profile table that we need to store.
 —Get seller profile—
 
 —Your Shop—
-Get my seller profile Edit my seller profile
+Get my seller profileEdit my seller profile
 Get all orders
 Get an order
 Get all products
@@ -150,7 +150,7 @@ Show Your Business
 Get business categories
 
 —Beauty—
-Get product categories (I don’t know where im getting this from yet or who’ll be creating it, it should be the admin, but we’re getting it here) Create a business category profile (country, state, city, address, business email, business phone number, website url, instagram, facebook, identity document, business name, type of offering (selling product, providing service —> use enums for this), product category, business description, product list, business certificates (document array), business logo
+Get product categories (I don’t know where im getting this from yet or who’ll be creating it, it should be the admin, but we’re getting it here)Create a business category profile (country, state, city, address, business email, business phone number, website url, instagram, facebook, identity document, business name, type of offering (selling product, providing service —> use enums for this), product category, business description, product list, business certificates (document array), business logo
 
 If type of offering is providing service, let’s collect (professional title, service list, no need for business certificates)
 
@@ -162,7 +162,7 @@ Create a business profile with category as school (country, state, city, address
 
 —Music—
 Create a business profile with category as music (country, state, city, address, business email, business phone number, website url, instagram, Facebook, YouTube, Spotify, music category (use enums for dj, artist, producer), identity document, biography, business logo)
-—Your Business— Get businesses for user id
+—Your Business—Get businesses for user id
 Edit business information
 Manage payment (this is a subscription)
 Deactivate shop (update store status to deactivated, use enums for this to show pending, approved, deactivated)
@@ -230,14 +230,14 @@ Action -> (View, we pass in the id of the order to get its data)
 * Music (count)
 
 
--> All Users Page (data we need to return) Return paginated data for all users, data is:
+-> All Users Page (data we need to return)Return paginated data for all users, data is:
 * Name
 * Reg. Date
 * Phone
 * Email
 
 
--> Market Page (data we need to return) Return all as paginated data
+-> Market Page (data we need to return)Return all as paginated data
 Three tabs on this page:
 
 Sellers
@@ -329,7 +329,7 @@ Action -> update status
 * End on (date)
 * Status
 
-Action -> create ad Action -> edit ad
+Action -> create adAction -> edit ad
 Action -> delete ad
 
 
@@ -341,7 +341,7 @@ Action -> delete ad
 * Status (active, inactive)
 
 Action -> view business in sustainability category
-Action -> add new business in this category Action -> edit this business type
+Action -> add new business in this categoryAction -> edit this business type
 Action -> update this business status
 
 

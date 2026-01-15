@@ -56,7 +56,7 @@ class PaymentController extends Controller
             ),
             "reference" => $reference,
             "currency" => "NGN",
-            "callback_url" => config("app.frontend_url") . "/payment/callback",
+            "callback_url" => "ojaewa://payment/callback",
             "metadata" => [
                 "order_id" => $order->id,
                 "user_id" => $user->id,

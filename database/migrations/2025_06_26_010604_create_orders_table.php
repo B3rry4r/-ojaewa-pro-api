@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->decimal('total_price', 10, 2);
-            $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->timestamps();
         });
     }

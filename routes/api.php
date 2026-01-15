@@ -92,8 +92,9 @@ Route::prefix("connect")->group(function () {
     Route::get("/app-links", [ConnectController::class, "appLinks"]);
 });
 
-// SCHOOLS (Public Registration)
+// SCHOOLS (Public Registration & Payment)
 Route::post("/school-registrations", [SchoolController::class, "register"]);
+Route::post("/payment/link/school", [SchoolController::class, "createPaymentLink"]);
 
 // PAYMENT WEBHOOKS (Public, no auth required)
 Route::post("/webhook/paystack", [
@@ -221,10 +222,6 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::post("/payment/link", [
         PaymentController::class,
         "createOrderPaymentLink",
-    ]);
-    Route::post("/payment/link/school", [
-        SchoolController::class,
-        "createPaymentLink",
     ]);
     Route::post("/payment/verify", [PaymentController::class, "verifyPayment"]);
 
