@@ -222,6 +222,9 @@ class ProductController extends Controller
     {
         $request->validate([
             'q' => 'required|string|min:1|max:255',
+            'category_id' => 'sometimes|integer|exists:categories,id',
+            'category_slug' => 'sometimes|string|max:255',
+            'type' => 'sometimes|in:textiles,afro_beauty,shoes_bags,art',
             'gender' => 'sometimes|in:male,female,unisex',
             'style' => 'sometimes|string|max:100',
             'tribe' => 'sometimes|string|max:100',
@@ -238,6 +241,23 @@ class ProductController extends Controller
             $q->where('name', 'like', '%' . $searchTerm . '%')
               ->orWhere('description', 'like', '%' . $searchTerm . '%');
         });
+
+        // Category filtering
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('category_slug')) {
+            $category = \App\Models\Category::where('slug', $request->category_slug)->first();
+            if ($category) {
+                $query->whereIn('category_id', $category->getSelfAndDescendantIds());
+            }
+        }
+
+        if ($request->filled('type')) {
+            $typeCategoryIds = \App\Models\Category::where('type', $request->type)->pluck('id');
+            $query->whereIn('category_id', $typeCategoryIds);
+        }
 
         // Apply filters
         if ($request->has('gender')) {
@@ -262,7 +282,7 @@ class ProductController extends Controller
 
         // Get paginated results with avg ratings
         $perPage = $request->input('per_page', 10);
-        $products = $query->with('sellerProfile')
+        $products = $query->with(['sellerProfile', 'category'])
                           ->orderBy('created_at', 'desc')
                           ->paginate($perPage);
 
@@ -388,6 +408,17 @@ class ProductController extends Controller
     public function filters(): JsonResponse
     {
         $filters = [
+            // Category types that map to product catalogs
+            'product_category_types' => ['textiles', 'afro_beauty', 'shoes_bags', 'art'],
+
+            // Category trees (client should use these to build browse UI)
+            'category_trees' => [
+                'textiles' => \App\Models\Category::where('type', 'textiles')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                'afro_beauty' => \App\Models\Category::where('type', 'afro_beauty')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                'shoes_bags' => \App\Models\Category::where('type', 'shoes_bags')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                'art' => \App\Models\Category::where('type', 'art')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+            ],
+
             'genders' => Product::select('gender')
                                ->where('status', 'approved')
                                ->distinct()

@@ -298,6 +298,8 @@ class BusinessProfileController extends Controller
         $request->validate([
             'q' => 'required|string|min:1|max:255',
             'category' => 'nullable|string|max:100',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'category_slug' => 'nullable|string|max:255',
             'offering_type' => 'nullable|in:providing_service,selling_product',
             'state' => 'nullable|string|max:100',
             'city' => 'nullable|string|max:100',
@@ -317,6 +319,25 @@ class BusinessProfileController extends Controller
         // Apply filters
         if ($request->filled('category')) {
             $query->where('category', $request->category);
+        }
+
+        // New category system (recommended)
+        if ($request->filled('category_id')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('category_id', $request->category_id)
+                  ->orWhere('subcategory_id', $request->category_id);
+            });
+        }
+
+        if ($request->filled('category_slug')) {
+            $category = \App\Models\Category::where('slug', $request->category_slug)->first();
+            if ($category) {
+                $ids = $category->getSelfAndDescendantIds();
+                $query->where(function ($q) use ($ids) {
+                    $q->whereIn('category_id', $ids)
+                      ->orWhereIn('subcategory_id', $ids);
+                });
+            }
         }
 
         if ($request->filled('offering_type')) {
@@ -363,11 +384,19 @@ class BusinessProfileController extends Controller
     public function filters(): JsonResponse
     {
         $filters = [
+            // Legacy categories (enum)
             'categories' => BusinessProfile::where('store_status', 'approved')
                                           ->distinct()
                                           ->pluck('category')
                                           ->filter()
                                           ->values(),
+
+            // New category trees (recommended for client)
+            'category_trees' => [
+                'school' => \App\Models\Category::where('type', 'school')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                // Afro Beauty services subtree only (businesses)
+                'afro_beauty_services' => \App\Models\Category::where('type', 'afro_beauty')->where('slug', 'afro-beauty-services')->with('children.children.children')->first(),
+            ],
             
             'offering_types' => BusinessProfile::where('store_status', 'approved')
                                               ->distinct()

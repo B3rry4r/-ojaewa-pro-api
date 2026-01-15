@@ -16,15 +16,29 @@ class SustainabilityController extends Controller
     {
         $request->validate([
             'category' => 'nullable|in:environmental,social,economic,governance',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'category_slug' => 'nullable|string|max:255',
             'per_page' => 'nullable|integer|min:1|max:50'
         ]);
         
         $query = SustainabilityInitiative::where('status', 'active')
                                         ->with('admin:id,firstname,lastname');
         
-        // Filter by category if provided
+        // Filter by legacy category enum if provided
         if ($request->filled('category')) {
             $query->where('category', $request->category);
+        }
+
+        // New category system (recommended)
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('category_slug')) {
+            $category = \App\Models\Category::where('slug', $request->category_slug)->first();
+            if ($category) {
+                $query->whereIn('category_id', $category->getSelfAndDescendantIds());
+            }
         }
         
         $perPage = $request->input('per_page', 10);
@@ -62,6 +76,8 @@ class SustainabilityController extends Controller
         $request->validate([
             'q' => 'required|string|min:1|max:255',
             'category' => 'nullable|in:environmental,social,economic,governance',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'category_slug' => 'nullable|string|max:255',
             'sort' => 'nullable|in:newest,oldest,target_asc,target_desc,progress',
             'per_page' => 'nullable|integer|min:1|max:50'
         ]);
@@ -78,6 +94,18 @@ class SustainabilityController extends Controller
         // Apply filters
         if ($request->filled('category')) {
             $query->where('category', $request->category);
+        }
+
+        // New category system (recommended)
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('category_slug')) {
+            $category = \App\Models\Category::where('slug', $request->category_slug)->first();
+            if ($category) {
+                $query->whereIn('category_id', $category->getSelfAndDescendantIds());
+            }
         }
 
         // Sorting
@@ -120,6 +148,13 @@ class SustainabilityController extends Controller
                                                     ->pluck('category')
                                                     ->filter()
                                                     ->values(),
+
+           // New category tree (recommended)
+           'category_tree' => \App\Models\Category::where('type', 'sustainability')
+               ->whereNull('parent_id')
+               ->with('children.children.children')
+               ->orderBy('order')
+               ->get(),
             
             'target_range' => SustainabilityInitiative::where('status', 'active')
                                                       ->selectRaw('MIN(target_amount) as min, MAX(target_amount) as max')
