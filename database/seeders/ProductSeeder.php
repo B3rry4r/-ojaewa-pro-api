@@ -24,21 +24,34 @@ class ProductSeeder extends Seeder
 
         // Deterministic category assignment so app navigation shows different products
         $targetSlugs = [
-            'men-clothing-shirts',
-            'men-shoes-sneakers',
-            'women-clothing-dresses',
-            'women-shoes-heels',
-            'women-accessories-handbags',
-            'men-accessories-watches',
+            // TEXTILES
+            'textiles-women-categories-dresses-gowns',
+            'textiles-women-categories-tops',
+            'textiles-men-categories-shirts-tops',
+            'textiles-men-categories-trousers',
+            'textiles-unisex-categories-modern-casual-wear',
+
+            // SHOES & BAGS
+            'shoes-bags-women-categories-slides-mules',
+            'shoes-bags-women-categories-evening-wedding-shoes',
+            'shoes-bags-men-categories-leather-sandals',
+            'shoes-bags-men-categories-brogues-derbies',
+
+            // AFRO BEAUTY (Products)
+            'afro-beauty-products-hair-care',
+            'afro-beauty-products-skin-care',
+
+            // ART
+            'art-sculpture',
+            'art-painting',
         ];
 
         $categoriesBySlug = Category::whereIn('slug', $targetSlugs)
-            ->where('type', 'market')
             ->get()
             ->keyBy('slug');
 
-        // Fallback to any market leaf categories if some slugs are missing
-        $fallbackLeafIds = Category::where('type', 'market')
+        // Fallback to any product-catalog leaf categories if some slugs are missing
+        $fallbackLeafIds = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty', 'art'])
             ->whereDoesntHave('children')
             ->pluck('id')
             ->toArray();

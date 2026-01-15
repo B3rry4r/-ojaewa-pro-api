@@ -24,7 +24,7 @@ class StoreBusinessProfileRequest extends FormRequest
         $rules = [
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:categories,id',
-            'category' => 'required|string|in:beauty,brand,school,music',
+            'category' => 'required|string|in:school,afro_beauty',
             'country' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'city' => 'required|string|max:100',

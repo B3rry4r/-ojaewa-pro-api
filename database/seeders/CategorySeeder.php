@@ -14,85 +14,252 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Market categories
-        $this->createMarketCategories();
-        
-        // Beauty categories
-        $this->createBeautyCategories();
-        
-        // Brand categories
-        $this->createBrandCategories();
-        
-        // School categories
-        $this->createSchoolCategories();
-        
-        // Sustainability categories
-        $this->createSustainabilityCategories();
-        
-        // Music categories
-        $this->createMusicCategories();
+        // LANDING PAGE BOX 1: TEXTILES (replaces Market)
+        $this->createTextilesCategories();
 
+        // LANDING PAGE BOX 2: AFRO BEAUTY (replaces Beauty)
+        $this->createAfroBeautyCategories();
+
+        // LANDING PAGE BOX 3: SHOES AND BAGS (replaces Brands)
+        $this->createShoesAndBagsCategories();
+
+        // LANDING PAGE BOX 4: ART (replaces Music)
+        $this->createArtCategories();
+
+        // Keep existing School categories (until you provide new school taxonomy)
+        $this->createSchoolCategories();
+
+        // Keep existing Sustainability categories (until you provide new sustainability taxonomy)
+        $this->createSustainabilityCategories();
     }
     
-    private function createMarketCategories(): void
+    private function createTextilesCategories(): void
     {
-        // Top-level market categories
-        $men = Category::create([
-            'name' => 'Men',
-            'slug' => 'men',
-            'type' => 'market',
+        // Top-level: For Women / For Men / Unisex
+        $women = Category::create([
+            'name' => 'For Women',
+            'slug' => 'textiles-women',
+            'type' => 'textiles',
             'order' => 1,
         ]);
-        
-        $women = Category::create([
-            'name' => 'Women',
-            'slug' => 'women',
-            'type' => 'market',
+
+        $men = Category::create([
+            'name' => 'For Men',
+            'slug' => 'textiles-men',
+            'type' => 'textiles',
             'order' => 2,
         ]);
-        
-        // Men's subcategories
-        $menCategories = [
-            'Clothing' => ['Shirts', 'Pants', 'Suits', 'Casual Wear'],
-            'Shoes' => ['Sneakers', 'Formal Shoes', 'Boots', 'Sandals'],
-            'Accessories' => ['Watches', 'Bags', 'Belts', 'Sunglasses'],
-        ];
-        
-        $this->createSubcategories($men, $menCategories, 'market');
-        
-        // Women's subcategories
+
+        $unisex = Category::create([
+            'name' => 'Unisex / For Both',
+            'slug' => 'textiles-unisex',
+            'type' => 'textiles',
+            'order' => 3,
+        ]);
+
+        // Women subcategories
         $womenCategories = [
-            'Clothing' => ['Dresses', 'Tops', 'Bottoms', 'Outerwear'],
-            'Shoes' => ['Heels', 'Flats', 'Sneakers', 'Boots'],
-            'Accessories' => ['Jewelry', 'Handbags', 'Scarves', 'Sunglasses'],
+            'Categories' => [
+                'Dresses & Gowns',
+                'Two-Piece Sets',
+                'Wrappers & Skirts',
+                'Tops',
+                'Headwear & Accessories',
+                'Outerwear',
+                'Special Occasion',
+            ],
         ];
-        
-        $this->createSubcategories($women, $womenCategories, 'market');
+        $this->createSubcategories($women, $womenCategories, 'textiles');
+
+        // Men subcategories
+        $menCategories = [
+            'Categories' => [
+                'Full Suits & Gowns',
+                'Two-Piece Sets',
+                'Shirts & Tops',
+                'Trousers',
+                'Wrap Garments',
+                'Outerwear',
+                'Accessories',
+            ],
+        ];
+        $this->createSubcategories($men, $menCategories, 'textiles');
+
+        // Unisex subcategories
+        $unisexCategories = [
+            'Categories' => [
+                'Modern Casual Wear',
+                'Capes & Stoles',
+                'Home & Lounge Wear',
+                'Accessories',
+            ],
+        ];
+        $this->createSubcategories($unisex, $unisexCategories, 'textiles');
+
+        // Fabric filters (as categories under Textiles root)
+        $fabrics = Category::create([
+            'name' => 'Filter by Fabrics',
+            'slug' => 'textiles-fabrics',
+            'type' => 'textiles',
+            'order' => 4,
+        ]);
+
+        $fabricList = [
+            'Ankara',
+            'Kente',
+            'Adinkra',
+            'Bògòlanfini (Bogolan/Mud Cloth)',
+            'Aso Oke',
+            'Akwa Ocha',
+            'George & Super Wax',
+            'Kente Prestige',
+            'Faso Dan Fani',
+            'Korhogo Cloth',
+            'Kitenge & Kanga',
+            'Leso',
+            'Shúkà',
+            'Liputa',
+            'Raffia cloth',
+            'Shweshwe',
+            'Lishu / Letishu',
+            'IsiShweshwe',
+            'Cotton voile',
+            'Woolen fabrics',
+            'Melhfa',
+        ];
+
+        $fabricOrder = 1;
+        foreach ($fabricList as $name) {
+            Category::create([
+                'name' => $name,
+                'slug' => Str::slug($fabrics->slug . '-' . $name),
+                'parent_id' => $fabrics->id,
+                'type' => 'textiles',
+                'order' => $fabricOrder++,
+            ]);
+        }
     }
-    
-    private function createBeautyCategories(): void
+
+    private function createAfroBeautyCategories(): void
     {
-        $beautyCategories = [
-            'Skincare' => ['Cleansers', 'Moisturizers', 'Serums', 'Sunscreen'],
-            'Makeup' => ['Foundation', 'Lipstick', 'Eyeshadow', 'Mascara'],
-            'Hair Care' => ['Shampoo', 'Conditioner', 'Styling Products', 'Treatments'],
-            'Fragrance' => ['Perfumes', 'Body Sprays', 'Essential Oils'],
-            'Tools & Accessories' => ['Brushes', 'Sponges', 'Mirrors', 'Storage'],
+        // Afro Beauty has products + services sections
+        $products = Category::create([
+            'name' => 'Categories Under Products',
+            'slug' => 'afro-beauty-products',
+            'type' => 'afro_beauty',
+            'order' => 1,
+        ]);
+
+        $productCats = [
+            'Hair Care',
+            'Skin Care',
+            'Makeup & Color Cosmetics',
+            'Fragrance',
+            "Men's Grooming",
+            'Wellness & Bath/Body',
+            "Children's Afro-Beauty",
+            'Tools & Accessories',
         ];
-        
-        $this->createTopLevelWithSubcategories($beautyCategories, 'beauty');
+
+        $order = 1;
+        foreach ($productCats as $name) {
+            Category::create([
+                'name' => $name,
+                'slug' => Str::slug($products->slug . '-' . $name),
+                'parent_id' => $products->id,
+                'type' => 'afro_beauty',
+                'order' => $order++,
+            ]);
+        }
+
+        $services = Category::create([
+            'name' => 'Categories Under Services',
+            'slug' => 'afro-beauty-services',
+            'type' => 'afro_beauty',
+            'order' => 2,
+        ]);
+
+        $serviceCats = [
+            'Hair Care & Styling Services',
+            'Skin Care & Aesthetics Services',
+            'Makeup Artistry Services',
+            'Barbering Services',
+            'Education & Consulting Services',
+            'Wellness & Therapeutic Services',
+        ];
+
+        $order = 1;
+        foreach ($serviceCats as $name) {
+            Category::create([
+                'name' => $name,
+                'slug' => Str::slug($services->slug . '-' . $name),
+                'parent_id' => $services->id,
+                'type' => 'afro_beauty',
+                'order' => $order++,
+            ]);
+        }
+
+        // Additional filters are not categories in DB (brand, price range, ingredients, etc.)
+        // Those should be implemented as product attributes/filters later.
     }
-    
-    private function createBrandCategories(): void
+
+    private function createShoesAndBagsCategories(): void
     {
-        $brandCategories = [
-            'Luxury Brands' => ['Designer Fashion', 'Premium Accessories', 'High-End Beauty'],
-            'Local Brands' => ['Nigerian Designers', 'Artisan Products', 'Handmade Items'],
-            'International Brands' => ['Global Fashion', 'Tech Brands', 'Sports Brands'],
-            'Emerging Brands' => ['Startups', 'New Designers', 'Innovative Products'],
+        $women = Category::create([
+            'name' => 'For Women',
+            'slug' => 'shoes-bags-women',
+            'type' => 'shoes_bags',
+            'order' => 1,
+        ]);
+
+        $womenCats = [
+            'Categories' => [
+                'Slides & Mules',
+                'Block Heel Sandals & Pumps',
+                'Wedges',
+                'Ballet Flats & Loafers',
+                'Evening & Wedding Shoes',
+            ],
         ];
-        
-        $this->createTopLevelWithSubcategories($brandCategories, 'brand');
+        $this->createSubcategories($women, $womenCats, 'shoes_bags');
+
+        $men = Category::create([
+            'name' => 'For Men',
+            'slug' => 'shoes-bags-men',
+            'type' => 'shoes_bags',
+            'order' => 2,
+        ]);
+
+        $menCats = [
+            'Categories' => [
+                'African Print Slip-Ons & Loafers',
+                'Leather Sandals',
+                'Modern Māṣǝr',
+                'Brogues & Derbies',
+            ],
+        ];
+        $this->createSubcategories($men, $menCats, 'shoes_bags');
+    }
+
+    private function createArtCategories(): void
+    {
+        $artCategories = [
+            'Sculpture',
+            'Painting',
+            'Mask',
+            'Mixed Media',
+            'Installation',
+        ];
+
+        $order = 1;
+        foreach ($artCategories as $name) {
+            Category::create([
+                'name' => $name,
+                'slug' => Str::slug('art-' . $name),
+                'type' => 'art',
+                'order' => $order++,
+            ]);
+        }
     }
     
     private function createSchoolCategories(): void
@@ -117,18 +284,6 @@ class CategorySeeder extends Seeder
         ];
         
         $this->createTopLevelWithSubcategories($sustainabilityCategories, 'sustainability');
-    }
-    
-    private function createMusicCategories(): void
-    {
-        $musicCategories = [
-            'Genres' => ['Afrobeats', 'Hip Hop', 'R&B', 'Gospel', 'Traditional'],
-            'Instruments' => ['Drums', 'Guitars', 'Keyboards', 'Traditional Instruments'],
-            'Music Production' => ['Recording Equipment', 'Software', 'Mixing Tools', 'Studio Services'],
-            'Events & Performances' => ['Concerts', 'Festivals', 'Live Performances', 'Music Venues'],
-        ];
-        
-        $this->createTopLevelWithSubcategories($musicCategories, 'music');
     }
     
     private function createTopLevelWithSubcategories(array $categories, string $type): void

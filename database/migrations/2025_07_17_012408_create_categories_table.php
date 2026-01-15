@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->unsignedBigInteger('parent_id')->nullable();
-            $table->enum('type', ['market', 'beauty', 'brand', 'school', 'sustainability', 'music']);
+            $table->enum('type', ['textiles', 'afro_beauty', 'shoes_bags', 'school', 'sustainability', 'art']);
             $table->integer('order')->default(0);
             $table->softDeletes();
             $table->timestamps();

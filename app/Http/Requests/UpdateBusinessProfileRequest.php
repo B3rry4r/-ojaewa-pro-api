@@ -25,7 +25,7 @@ class UpdateBusinessProfileRequest extends FormRequest
         $rules = [
             'category_id' => 'sometimes|nullable|exists:categories,id',
             'subcategory_id' => 'sometimes|nullable|exists:categories,id',
-            'category' => 'sometimes|required|string|in:beauty,brand,school,music',
+            'category' => 'sometimes|required|string|in:school,afro_beauty',
             'country' => 'sometimes|required|string|max:100',
             'state' => 'sometimes|required|string|max:100',
             'city' => 'sometimes|required|string|max:100',

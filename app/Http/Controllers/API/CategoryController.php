@@ -23,7 +23,7 @@ class CategoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => ['required', Rule::in(['market', 'beauty', 'brand', 'school', 'sustainability', 'music'])],
+            'type' => ['required', Rule::in(['textiles', 'afro_beauty', 'shoes_bags', 'school', 'sustainability', 'art'])],
         ]);
         
         $categories = Category::ofType($request->type)
@@ -75,7 +75,7 @@ class CategoryController extends Controller
     public function items(Request $request, string $type, string $slug): JsonResponse
     {
         // Validate type
-        if (!in_array($type, ['market', 'beauty', 'brand', 'school', 'sustainability', 'music'])) {
+        if (!in_array($type, ['textiles', 'afro_beauty', 'shoes_bags', 'school', 'sustainability', 'art'])) { 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid category type',
@@ -126,8 +126,9 @@ class CategoryController extends Controller
         $categoryIds = $category->getSelfAndDescendantIds();
 
         switch ($category->type) {
-            case 'market':
-                // For market categories, return products filtered by category hierarchy
+            case 'textiles':
+            case 'shoes_bags':
+                // For textiles/shoes_bags categories, return products filtered by category hierarchy
                 return Product::whereIn('category_id', $categoryIds)
                     ->where('status', 'approved')
                     ->with([
@@ -137,11 +138,45 @@ class CategoryController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->paginate($perPage);
                 
-            case 'beauty':
-            case 'brand':
+            case 'afro_beauty':
+                // Afro Beauty: if user is browsing services subtree, return businesses; otherwise return products
+                if ($category->slug === 'afro-beauty-services' || str_starts_with($category->slug, 'afro-beauty-services-')) {
+                    return BusinessProfile::where(function ($query) use ($categoryIds) {
+                            $query->whereIn('category_id', $categoryIds)
+                                  ->orWhereIn('subcategory_id', $categoryIds);
+                        })
+                        ->where('store_status', 'approved')
+                        ->with([
+                            'user:id,firstname,lastname',
+                            'categoryRelation:id,name,slug,parent_id,type',
+                            'subcategoryRelation:id,name,slug,parent_id,type'
+                        ])
+                        ->orderBy('created_at', 'desc')
+                        ->paginate($perPage);
+                }
+
+                return Product::whereIn('category_id', $categoryIds)
+                    ->where('status', 'approved')
+                    ->with([
+                        'category:id,name,slug,parent_id,type',
+                        'sellerProfile:id,business_name,business_email,city,state'
+                    ])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($perPage);
+
+            case 'art':
+                // Art landing page is a product catalog
+                return Product::whereIn('category_id', $categoryIds)
+                    ->where('status', 'approved')
+                    ->with([
+                        'category:id,name,slug,parent_id,type',
+                        'sellerProfile:id,business_name,business_email,city,state'
+                    ])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($perPage);
+
             case 'school':
-            case 'music':
-                // For business categories, return business profiles filtered by category/subcategory hierarchy
+                // Schools remain businesses/service providers
                 return BusinessProfile::where(function ($query) use ($categoryIds) {
                         $query->whereIn('category_id', $categoryIds)
                               ->orWhereIn('subcategory_id', $categoryIds);

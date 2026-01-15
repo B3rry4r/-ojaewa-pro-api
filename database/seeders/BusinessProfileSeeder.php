@@ -16,7 +16,8 @@ class BusinessProfileSeeder extends Seeder
     public function run(): void
     {
         // Define the categories we need to create
-        $categories = ['beauty', 'brand', 'school', 'music'];
+        // Business profiles represent service providers (schools + afro beauty services)
+        $categories = ['school', 'afro_beauty'];
         $neededUsers = count($categories);
 
         // Get first N users for creating sample businesses
@@ -30,11 +31,17 @@ class BusinessProfileSeeder extends Seeder
             }
         }
 
-        // Preload top-level category IDs for each type
-        $topLevelCategoryIds = Category::whereNull('parent_id')
+        // Preload top-level category nodes for each type
+        $topLevelCategoryNodes = Category::whereNull('parent_id')
             ->whereIn('type', $categories)
             ->get()
-            ->keyBy('type');
+            ->groupBy('type');
+
+        // For afro_beauty business profiles, we attach them to the SERVICES subtree
+        $afroBeautyServices = Category::where('type', 'afro_beauty')
+            ->where('slug', 'afro-beauty-services')
+            ->with('children')
+            ->first();
 
         // Create businesses per type with deterministic subcategories so subcategory screens differ
         foreach ($categories as $index => $category) {
@@ -43,9 +50,14 @@ class BusinessProfileSeeder extends Seeder
             // Base data for all business profiles
             $data = [
                 'user_id' => $user->id,
-                'category_id' => $topLevelCategoryIds[$category]->id ?? null,
-                // deterministic subcategory: pick first child under this type (if any)
-                'subcategory_id' => optional(($topLevelCategoryIds[$category] ?? null)?->children()->orderBy('id')->first())->id,
+                'category_id' => $category === 'afro_beauty'
+                    ? optional($afroBeautyServices)->id
+                    : optional($topLevelCategoryNodes[$category]?->first())->id,
+
+                // subcategory: for afro_beauty, pick a service category; for school, pick first child
+                'subcategory_id' => $category === 'afro_beauty'
+                    ? optional($afroBeautyServices?->children()->orderBy('id')->first())->id
+                    : optional(optional($topLevelCategoryNodes[$category]?->first())?->children()->orderBy('id')->first())->id,
                 'category' => $category,
                 'country' => fake()->country(),
                 'state' => fake()->state(),
@@ -61,7 +73,7 @@ class BusinessProfileSeeder extends Seeder
             ];
             
             // Add category-specific data
-            if ($category === 'beauty') {
+            if ($category === 'afro_beauty') {
                 $data = array_merge($data, [
                     'offering_type' => 'providing_service',
                     'service_list' => json_encode([
@@ -73,23 +85,6 @@ class BusinessProfileSeeder extends Seeder
                     'business_logo' => 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop',
                     'instagram' => '@' . strtolower(str_replace(' ', '', $data['business_name'])),
                     'facebook' => strtolower(str_replace(' ', '', $data['business_name'])),
-                ]);
-            } elseif ($category === 'brand') {
-                $data = array_merge($data, [
-                    'offering_type' => 'selling_product',
-                    'product_list' => json_encode([
-                        ['name' => 'T-Shirt', 'price' => 2500],
-                        ['name' => 'Jeans', 'price' => 6000],
-                        ['name' => 'Sneakers', 'price' => 15000]
-                    ]),
-                    'business_certificates' => json_encode([
-                        'business_registration.pdf',
-                        'tax_clearance.pdf'
-                    ]),
-                    'business_logo' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop',
-                    'facebook' => strtolower(str_replace(' ', '', $data['business_name'])),
-                    'website_url' => 'https://www.' . strtolower(str_replace(' ', '', $data['business_name'])) . '.com',
-                    'instagram' => '@' . strtolower(str_replace(' ', '', $data['business_name'])),
                 ]);
             } elseif ($category === 'school') {
                 $data = array_merge($data, [
@@ -103,21 +98,15 @@ class BusinessProfileSeeder extends Seeder
                     ]),
                     'website_url' => 'https://www.' . strtolower(str_replace(' ', '', $data['business_name'])) . '.edu',
                 ]);
-            } elseif ($category === 'music') {
-                $data = array_merge($data, [
-                    'business_logo' => 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop',
-                    'music_category' => fake()->randomElement(['dj', 'artist', 'producer']),
-                    'identity_document' => null, // Optional field, can be uploaded later
-                    'youtube' => 'https://youtube.com/' . strtolower(str_replace(' ', '', $data['business_name'])),
-                    'spotify' => 'https://spotify.com/artist/' . strtolower(str_replace(' ', '', $data['business_name'])),
-                ]);
             }
             
             // Create the business profile
             BusinessProfile::create($data);
 
             // Create a second business under a different subcategory (if available)
-            $secondSubcategoryId = optional(($topLevelCategoryIds[$category] ?? null)?->children()->orderByDesc('id')->first())->id;
+            $secondSubcategoryId = $category === 'afro_beauty'
+                ? optional($afroBeautyServices?->children()->orderByDesc('id')->first())->id
+                : optional(optional($topLevelCategoryNodes[$category]?->first())?->children()->orderByDesc('id')->first())->id;
             if ($secondSubcategoryId && $secondSubcategoryId !== $data['subcategory_id']) {
                 $data2 = $data;
                 $data2['business_name'] = fake()->company() . ' ' . ucfirst($category) . ' 2';

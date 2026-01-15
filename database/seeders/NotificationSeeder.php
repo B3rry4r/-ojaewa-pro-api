@@ -89,7 +89,7 @@ class NotificationSeeder extends Seeder
                 'event' => 'business_approved',
                 'title' => 'Business Profile Approved',
                 'message' => 'Your {category} business profile has been approved and is now live.',
-                'payload' => ['category' => 'beauty', 'business_name' => 'Glam Beauty Studio'],
+                'payload' => ['category' => 'afro_beauty', 'business_name' => 'Glam Afro Beauty Studio'],
             ],
 
             // Promotional notifications
