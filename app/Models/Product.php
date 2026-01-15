@@ -19,6 +19,7 @@ class Product extends Model
      */
     protected $fillable = [
         'seller_profile_id',
+        'category_id',
         'name',
         'gender',
         'style',
@@ -48,6 +49,14 @@ class Product extends Model
      * @var array
      */
     protected $appends = ['avg_rating'];
+
+    /**
+     * Get the category for this product.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     /**
      * Get the seller profile that owns the product.

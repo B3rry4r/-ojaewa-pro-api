@@ -19,6 +19,7 @@ class SustainabilityInitiative extends Model
         'title',
         'description',
         'image_url',
+        'category_id',
         'category',
         'status',
         'target_amount',
@@ -58,6 +59,14 @@ class SustainabilityInitiative extends Model
     public function admin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    /**
+     * Category relationship (new category system)
+     */
+    public function categoryRelation(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Admin;
 use App\Models\SustainabilityInitiative;
+use App\Models\Category;
 
 class SustainabilityInitiativeSeeder extends Seeder
 {
@@ -16,6 +17,19 @@ class SustainabilityInitiativeSeeder extends Seeder
             $this->command->warn('No admin found, skipping sustainability initiatives seeding');
             return;
         }
+
+        // Pick a few sustainability categories to attach initiatives to
+        $sustainabilityLeafCategoryIds = Category::where('type', 'sustainability')
+            ->whereDoesntHave('children')
+            ->pluck('id')
+            ->toArray();
+
+        $sustainabilityTopCategoryIds = Category::where('type', 'sustainability')
+            ->whereNull('parent_id')
+            ->pluck('id')
+            ->toArray();
+
+        $usableCategoryIds = !empty($sustainabilityLeafCategoryIds) ? $sustainabilityLeafCategoryIds : $sustainabilityTopCategoryIds;
 
         $initiatives = [
             [
@@ -51,6 +65,7 @@ class SustainabilityInitiativeSeeder extends Seeder
         foreach ($initiatives as $initiativeData) {
             SustainabilityInitiative::create([
                 'created_by' => $admin->id,
+                'category_id' => !empty($usableCategoryIds) ? $usableCategoryIds[array_rand($usableCategoryIds)] : null,
                 'title' => $initiativeData['title'],
                 'description' => $initiativeData['description'],
                 'image_url' => 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&h=400&fit=crop',

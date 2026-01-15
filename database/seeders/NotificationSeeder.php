@@ -58,8 +58,8 @@ class NotificationSeeder extends Seeder
                 'type' => 'push',
                 'event' => 'new_product',
                 'title' => 'New Products Available',
-                'message' => 'Check out the latest African fashion pieces from your favorite sellers.',
-                'payload' => ['category' => 'fashion', 'count' => 5],
+                'message' => 'Check out the latest products from your favorite sellers.',
+                'payload' => ['category' => 'market', 'count' => 5],
             ],
             [
                 'type' => 'push',
@@ -97,7 +97,7 @@ class NotificationSeeder extends Seeder
                 'type' => 'push',
                 'event' => 'discount_sale',
                 'title' => 'Special Discount Available',
-                'message' => 'Enjoy up to 30% off on selected African fashion items this weekend!',
+                'message' => 'Enjoy up to 30% off on selected items this weekend!',
                 'payload' => ['discount_percent' => 30, 'valid_until' => Carbon::now()->addDays(3)->toDateString()],
             ],
             [

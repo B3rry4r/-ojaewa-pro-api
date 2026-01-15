@@ -23,6 +23,8 @@ class UpdateBusinessProfileRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
+            'category_id' => 'sometimes|nullable|exists:categories,id',
+            'subcategory_id' => 'sometimes|nullable|exists:categories,id',
             'category' => 'sometimes|required|string|in:beauty,brand,school,music',
             'country' => 'sometimes|required|string|max:100',
             'state' => 'sometimes|required|string|max:100',
@@ -71,9 +73,7 @@ class UpdateBusinessProfileRequest extends FormRequest
             if ($this->has('product_list')) {
                 $rules['product_list'] = 'required|json';
             }
-            if ($this->has('business_certificates')) {
-                $rules['business_certificates'] = 'required|json';
-            }
+            // business_certificates uploaded after creation via /api/business/{id}/upload
         }
 
         // Conditional validations based on category
@@ -93,9 +93,7 @@ class UpdateBusinessProfileRequest extends FormRequest
             if ($this->has('music_category')) {
                 $rules['music_category'] = 'required|string|in:dj,artist,producer';
             }
-            if ($this->has('identity_document')) {
-                $rules['identity_document'] = 'required|string|max:255';
-            }
+            // identity_document uploaded after creation via /api/business/{id}/upload
             
             // At least one of youtube or spotify is required for music businesses
             if (($this->has('youtube') || $this->has('spotify')) && 

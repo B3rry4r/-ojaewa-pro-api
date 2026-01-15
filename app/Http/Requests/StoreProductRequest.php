@@ -24,6 +24,7 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'gender' => 'required|in:male,female,unisex',
             'style' => 'required|string|max:100',
@@ -49,6 +50,8 @@ class StoreProductRequest extends FormRequest
             'processing_time_type.in' => 'Processing time type must be normal or quick_quick',
             'processing_days.min' => 'Processing days must be at least 1',
             'processing_days.max' => 'Processing days cannot exceed 30',
+            'category_id.required' => 'Please select a product category',
+            'category_id.exists' => 'The selected category is invalid',
             'price.min' => 'Price must be at least 0.01',
         ];
     }

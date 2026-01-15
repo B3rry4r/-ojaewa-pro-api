@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Product;
 use App\Models\SellerProfile;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -21,19 +22,52 @@ class ProductSeeder extends Seeder
             return;
         }
 
-        // Create 10 products distributed across sellers
+        // Deterministic category assignment so app navigation shows different products
+        $targetSlugs = [
+            'men-clothing-shirts',
+            'men-shoes-sneakers',
+            'women-clothing-dresses',
+            'women-shoes-heels',
+            'women-accessories-handbags',
+            'men-accessories-watches',
+        ];
+
+        $categoriesBySlug = Category::whereIn('slug', $targetSlugs)
+            ->where('type', 'market')
+            ->get()
+            ->keyBy('slug');
+
+        // Fallback to any market leaf categories if some slugs are missing
+        $fallbackLeafIds = Category::where('type', 'market')
+            ->whereDoesntHave('children')
+            ->pluck('id')
+            ->toArray();
+
+        if ($categoriesBySlug->isEmpty() && empty($fallbackLeafIds)) {
+            $this->command->warn('No market categories found. Ensure CategorySeeder runs before ProductSeeder.');
+            return;
+        }
+
+        // For each seller, create products across the specific categories
         foreach ($sellerProfiles as $profile) {
-            // Create 3-4 products per seller until we reach 10
-            $count = min(rand(3, 4), 10 - Product::count());
-            
-            if ($count <= 0) break; // Stop if we've reached 10 products
-            
-            Product::factory()->count($count)->create([
-                'seller_profile_id' => $profile->id,
-                'status' => 'approved', // Set all to approved for easy testing
-            ]);
-            
-            $this->command->info("Created {$count} products for seller {$profile->business_name}");
+            $created = 0;
+
+            foreach ($targetSlugs as $slug) {
+                $categoryId = $categoriesBySlug[$slug]->id ?? ($fallbackLeafIds[array_rand($fallbackLeafIds)] ?? null);
+                if (!$categoryId) {
+                    continue;
+                }
+
+                // Create 1 product per target category per seller (keeps categories distinct)
+                Product::factory()->create([
+                    'seller_profile_id' => $profile->id,
+                    'category_id' => $categoryId,
+                    'status' => 'approved',
+                ]);
+                $created++;
+            }
+
+            $this->command->info("Created {$created} categorized products for seller {$profile->business_name}");
         }
     }
 }

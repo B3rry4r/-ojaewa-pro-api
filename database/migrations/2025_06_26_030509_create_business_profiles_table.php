@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('business_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained();
-            $table->enum('category', ['beauty', 'brand', 'school', 'music', 'fashion']);
+            $table->enum('category', ['beauty', 'brand', 'school', 'music']);
             $table->string('country');
             $table->string('state');
             $table->string('city');

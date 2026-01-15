@@ -31,6 +31,7 @@ class CategorySeeder extends Seeder
         
         // Music categories
         $this->createMusicCategories();
+
     }
     
     private function createMarketCategories(): void

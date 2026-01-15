@@ -122,11 +122,18 @@ class CategoryController extends Controller
      */
     private function getCategoryItems(Category $category, int $perPage)
     {
+        // Include this category and all descendants for inclusive filtering
+        $categoryIds = $category->getSelfAndDescendantIds();
+
         switch ($category->type) {
             case 'market':
-                // For market categories, return full product objects
-                return Product::where('status', 'approved')
-                    ->with(['sellerProfile:id,business_name,business_email,city,state'])
+                // For market categories, return products filtered by category hierarchy
+                return Product::whereIn('category_id', $categoryIds)
+                    ->where('status', 'approved')
+                    ->with([
+                        'category:id,name,slug,parent_id,type',
+                        'sellerProfile:id,business_name,business_email,city,state'
+                    ])
                     ->orderBy('created_at', 'desc')
                     ->paginate($perPage);
                 
@@ -134,17 +141,28 @@ class CategoryController extends Controller
             case 'brand':
             case 'school':
             case 'music':
-                // For business profile categories, return full business objects
-                return BusinessProfile::where('category', $category->type)
+                // For business categories, return business profiles filtered by category/subcategory hierarchy
+                return BusinessProfile::where(function ($query) use ($categoryIds) {
+                        $query->whereIn('category_id', $categoryIds)
+                              ->orWhereIn('subcategory_id', $categoryIds);
+                    })
                     ->where('store_status', 'approved')
-                    ->with(['user:id,firstname,lastname'])
+                    ->with([
+                        'user:id,firstname,lastname',
+                        'categoryRelation:id,name,slug,parent_id,type',
+                        'subcategoryRelation:id,name,slug,parent_id,type'
+                    ])
                     ->orderBy('created_at', 'desc')
                     ->paginate($perPage);
                 
             case 'sustainability':
-                // For sustainability categories, return full sustainability initiative objects
-                return SustainabilityInitiative::where('status', 'active')
-                    ->with(['admin:id,firstname,lastname'])
+                // For sustainability categories, return initiatives filtered by category hierarchy
+                return SustainabilityInitiative::whereIn('category_id', $categoryIds)
+                    ->where('status', 'active')
+                    ->with([
+                        'admin:id,firstname,lastname',
+                        'categoryRelation:id,name,slug,parent_id,type'
+                    ])
                     ->orderBy('created_at', 'desc')
                     ->paginate($perPage);
                 

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\BusinessProfile;
+use App\Models\Category;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -14,27 +15,37 @@ class BusinessProfileSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get first 4 users for creating sample businesses
-        $users = User::take(4)->get();
+        // Define the categories we need to create
+        $categories = ['beauty', 'brand', 'school', 'music'];
+        $neededUsers = count($categories);
+
+        // Get first N users for creating sample businesses
+        $users = User::take($neededUsers)->get();
         
-        if ($users->count() < 4) {
+        if ($users->count() < $neededUsers) {
             // If there aren't enough users, create some
-            $missingCount = 4 - $users->count();
+            $missingCount = $neededUsers - $users->count();
             for ($i = 0; $i < $missingCount; $i++) {
                 $users->push(User::factory()->create());
             }
         }
-        
-        // Define the categories we need to create
-        $categories = ['beauty', 'brand', 'school', 'music'];
-        
-        // Create one business of each category type
+
+        // Preload top-level category IDs for each type
+        $topLevelCategoryIds = Category::whereNull('parent_id')
+            ->whereIn('type', $categories)
+            ->get()
+            ->keyBy('type');
+
+        // Create businesses per type with deterministic subcategories so subcategory screens differ
         foreach ($categories as $index => $category) {
             $user = $users[$index];
             
             // Base data for all business profiles
             $data = [
                 'user_id' => $user->id,
+                'category_id' => $topLevelCategoryIds[$category]->id ?? null,
+                // deterministic subcategory: pick first child under this type (if any)
+                'subcategory_id' => optional(($topLevelCategoryIds[$category] ?? null)?->children()->orderBy('id')->first())->id,
                 'category' => $category,
                 'country' => fake()->country(),
                 'state' => fake()->state(),
@@ -104,9 +115,19 @@ class BusinessProfileSeeder extends Seeder
             
             // Create the business profile
             BusinessProfile::create($data);
+
+            // Create a second business under a different subcategory (if available)
+            $secondSubcategoryId = optional(($topLevelCategoryIds[$category] ?? null)?->children()->orderByDesc('id')->first())->id;
+            if ($secondSubcategoryId && $secondSubcategoryId !== $data['subcategory_id']) {
+                $data2 = $data;
+                $data2['business_name'] = fake()->company() . ' ' . ucfirst($category) . ' 2';
+                $data2['business_email'] = fake()->companyEmail();
+                $data2['subcategory_id'] = $secondSubcategoryId;
+                BusinessProfile::create($data2);
+            }
             
             // Output a message for the created business
-            $this->command->info("Created {$category} business for user {$user->name}");
+            $this->command->info("Created {$category} businesses for user {$user->name}");
         }
     }
 }

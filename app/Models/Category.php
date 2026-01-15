@@ -114,4 +114,28 @@ class Category extends Model
     {
         return $query->where('type', $type);
     }
+
+    /**
+     * Get all descendant IDs (children, grandchildren, etc.)
+     */
+    public function getAllDescendantIds(): array
+    {
+        $this->loadMissing('children');
+
+        $ids = [];
+        foreach ($this->children as $child) {
+            $ids[] = $child->id;
+            $ids = array_merge($ids, $child->getAllDescendantIds());
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Get self + all descendant IDs
+     */
+    public function getSelfAndDescendantIds(): array
+    {
+        return array_merge([$this->id], $this->getAllDescendantIds());
+    }
 }

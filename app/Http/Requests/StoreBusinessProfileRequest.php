@@ -22,7 +22,9 @@ class StoreBusinessProfileRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'category' => 'required|string|in:beauty,brand,school,music,fashion',
+            'category_id' => 'nullable|exists:categories,id',
+            'subcategory_id' => 'nullable|exists:categories,id',
+            'category' => 'required|string|in:beauty,brand,school,music',
             'country' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'city' => 'required|string|max:100',

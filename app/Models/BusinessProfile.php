@@ -19,6 +19,8 @@ class BusinessProfile extends Model
      */
     protected $fillable = [
         'user_id',
+        'category_id',
+        'subcategory_id',
         'category',
         'country',
         'state',
@@ -74,6 +76,22 @@ class BusinessProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Category relationship (new category system)
+     */
+    public function categoryRelation(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    /**
+     * Subcategory relationship (new category system)
+     */
+    public function subcategoryRelation(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'subcategory_id');
     }
     
     /**
