@@ -15,6 +15,45 @@ use Illuminate\Validation\Rule;
 class CategoryController extends Controller
 {
     /**
+     * Get ALL categories grouped by type with full tree structure.
+     * Useful for registration forms to let users select categories.
+     * 
+     * @return JsonResponse
+     */
+    public function allCategoriesTree(): JsonResponse
+    {
+        $types = ['textiles', 'afro_beauty', 'shoes_bags', 'art', 'school', 'sustainability'];
+        
+        $result = [];
+        foreach ($types as $type) {
+            $result[$type] = Category::where('type', $type)
+                ->whereNull('parent_id')
+                ->orderBy('order')
+                ->with(['children' => function ($query) {
+                    $query->orderBy('order')->with(['children' => function ($q) {
+                        $q->orderBy('order')->with(['children' => function ($q2) {
+                            $q2->orderBy('order');
+                        }]);
+                    }]);
+                }])
+                ->get();
+        }
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $result,
+            'meta' => [
+                'usage' => [
+                    'products' => 'Use category_id from textiles, shoes_bags, afro_beauty (products subtree), or art',
+                    'businesses' => 'Use category_id/subcategory_id from school or afro_beauty (services subtree)',
+                    'sustainability' => 'Use category_id from sustainability',
+                ],
+                'types' => $types,
+            ],
+        ]);
+    }
+
+    /**
      * Get categories by type.
      * 
      * @param Request $request

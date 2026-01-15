@@ -9,6 +9,46 @@ It contains the **exact endpoints**, **required params**, **headers**, and **rea
 
 ## 1) Category Navigation (Landing Page)
 
+### 1.0 Get ALL categories (grouped by type) for registration forms
+
+**GET** `/api/categories/all`
+
+This endpoint returns **all category trees** grouped by `type`, so the mobile app can:
+- show full category pickers during registration/onboarding
+- store the correct `category_id` / `subcategory_id`
+- avoid guessing slugs
+
+**Headers**
+- `Accept: application/json`
+
+**Example request**
+```bash
+curl -X GET "https://<host>/api/categories/all" \
+  -H "Accept: application/json"
+```
+
+**Response (shape)**
+```json
+{
+  "status": "success",
+  "data": {
+    "textiles": [ ...tree... ],
+    "afro_beauty": [ ...tree... ],
+    "shoes_bags": [ ...tree... ],
+    "art": [ ...tree... ],
+    "school": [ ...tree... ],
+    "sustainability": [ ...tree... ]
+  },
+  "meta": {
+    "usage": {
+      "products": "Use category_id from textiles, shoes_bags, afro_beauty (products subtree), or art",
+      "businesses": "Use category_id/subcategory_id from school or afro_beauty (services subtree)",
+      "sustainability": "Use category_id from sustainability"
+    }
+  }
+}
+```
+
 ### 1.1 List categories for a landing box
 
 **GET** `/api/categories?type={type}`
@@ -399,7 +439,30 @@ curl -X GET "https://<host>/api/sustainability/search?q=initiative&per_page=2" \
 
 ---
 
-## 5) Recommended client implementation
+## 5) Registration / Creation forms: what category fields must be sent
+
+### Product creation (seller)
+- Endpoint: `POST /api/products`
+- Required: `category_id`
+  - Must be a valid category node under one of the product catalogs:
+    - `textiles`, `shoes_bags`, `afro_beauty` (products subtree), `art`
+
+### Business profile creation (services)
+- Endpoint: `POST /api/business`
+- Recommended:
+  - `category_id` and `subcategory_id` picked from:
+    - `school` category tree, or
+    - `afro_beauty` → services subtree (`afro-beauty-services...`)
+
+### Sustainability initiative creation (admin)
+- Endpoint: `POST /api/admin/sustainability`
+- Supports:
+  - legacy `category` (environmental/social/economic/governance)
+  - new `category_id` (recommended) → pick from `type=sustainability` tree
+
+---
+
+## 6) Recommended client implementation
 
 ### Category browsing
 1. Load category tree: `GET /api/categories?type=<landing_type>`

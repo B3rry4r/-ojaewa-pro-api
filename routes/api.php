@@ -58,6 +58,7 @@ Route::post("oauth/google", [GoogleAuthController::class, "handle"]);
 // HOME SCREEN & PUBLIC ROUTES
 Route::prefix("categories")->group(function () {
     Route::get("/", [CategoryController::class, "index"]);
+    Route::get("/all", [CategoryController::class, "allCategoriesTree"]); // For registration forms
     Route::get("/{id}/children", [CategoryController::class, "children"]);
     Route::get("/{type}/{slug}/items", [CategoryController::class, "items"]);
 });
