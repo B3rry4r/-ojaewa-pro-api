@@ -1,299 +1,415 @@
-# Landing Categories + Search + Filters API (Client Guide)
+# Landing Categories + Search + Filters API (Client Agent Pack)
 
-This document describes how the mobile client should build the Landing Page category navigation (Textiles, Afro Beauty, Shoes & Bags, Art) and how to use the **Search** and **Filters** endpoints in a way that returns **different results for each category/subcategory**.
+This document is intended to be sent to the mobile/client agent.
+It contains the **exact endpoints**, **required params**, **headers**, and **real request/response examples** captured from a seeded local environment.
 
-> Important: The API uses globally-unique category slugs. Always use the `slug` values returned from the API.
-
----
-
-## Table of Contents
-1. [Category System Overview](#category-system-overview)
-2. [Category Endpoints](#category-endpoints)
-3. [Landing Page Taxonomy (What Exists)](#landing-page-taxonomy-what-exists)
-4. [Fetching Items for a Category/Subcategory](#fetching-items-for-a-categorysubcategory)
-5. [Products: Browse / Search / Filters](#products-browse--search--filters)
-6. [Businesses (Services): Public Search / Filters](#businesses-services-public-search--filters)
-7. [Sustainability: Index / Search / Filters](#sustainability-index--search--filters)
-8. [Recommended Client Flow (End-to-End)](#recommended-client-flow-end-to-end)
+> Key rule: **Do not guess slugs.** Always fetch categories first and use the returned `slug`.
 
 ---
 
-## Category System Overview
+## 1) Category Navigation (Landing Page)
 
-The backend stores hierarchical categories in the `categories` table.
-
-### Category Types
-These are the only valid `type` values for categories:
-- `textiles` (Landing Box 1)
-- `afro_beauty` (Landing Box 2)
-- `shoes_bags` (Landing Box 3)
-- `art` (Landing Box 4)
-- `school` (services/businesses)
-- `sustainability` (initiatives)
-
-### What each type returns
-When the client calls the category-items endpoint (see below), the API returns:
-
-| Category type | Returned data |
-|---|---|
-| `textiles` | **Products** |
-| `shoes_bags` | **Products** |
-| `art` | **Products** |
-| `afro_beauty` | **Products** for product subtree, **Businesses** for services subtree |
-| `school` | **Businesses** |
-| `sustainability` | **Sustainability initiatives** |
-
----
-
-## Category Endpoints
-
-### 1) List Categories by Type
+### 1.1 List categories for a landing box
 
 **GET** `/api/categories?type={type}`
 
 **Query params**
 - `type` (required): `textiles | afro_beauty | shoes_bags | art | school | sustainability`
 
-**Example**
+**Headers**
+- `Accept: application/json`
+
+**Example request**
 ```bash
-curl "https://<host>/api/categories?type=textiles"
+curl -X GET "https://<host>/api/categories?type=textiles" \
+  -H "Accept: application/json"
 ```
 
-**Response (example)**
+**Example response (real)**
+```json
+{"status":"success","data":[{"id":1,"name":"For Women","slug":"textiles-women","parent_id":null,"type":"textiles","order":1,"deleted_at":null,"created_at":"2026-01-15T18:02:30.000000Z","updated_at":"2026-01-15T18:02:30.000000Z","children":[{"id":4,"name":"Categories","slug":"textiles-women-categories","parent_id":1,"type":"textiles","order":1,"deleted_at":null,"created_at":"2026-01-15T18:02:30.000000Z","updated_at":"2026-01-15T18:02:30.000000Z"}]},{"id":2,"name":"For Men","slug":"textiles-men","parent_id":null,"type":"textiles","order":2,"deleted_at":null,"created_at":"2026-01-15T18:02:30.000000Z","updated_at":"2026-01-15T18:02:30.000000Z","children":[{"id":10,"name":"Categories","slug":"textiles-men-categories","parent_id":2,"type":"textiles","order":1,"deleted_at":null,"created_at":"2026-01-15T18:02:30.000000Z","updated_at":"2026-01-15T18:02:30.000000Z"}]}, {"id":3,"name":"Unisex / For Both","slug":"textiles-unisex","parent_id":null,"type":"textiles","order":3,"deleted_at":null,"created_at":"2026-01-15T18:02:30.000000Z","updated_at":"2026-01-15T18:02:30.000000Z"}]}
+```
+
+---
+
+### 1.2 Fetch items for a category/subcategory
+
+**GET** `/api/categories/{type}/{slug}/items`
+
+**Path params**
+- `type`: same as the category type you loaded
+- `slug`: a slug returned from `/api/categories?type=...`
+
+**Query params**
+- `per_page` (optional)
+
+**Headers**
+- `Accept: application/json`
+
+**Example request (Textiles → Women → Dresses & Gowns)**
+```bash
+curl -X GET "https://<host>/api/categories/textiles/textiles-women-categories-dresses-gowns/items?per_page=2" \
+  -H "Accept: application/json"
+```
+
+**Example response (real, products)**
 ```json
 {
-  "status": "success",
-  "data": [
-    {
-      "id": 1,
-      "name": "For Women",
-      "slug": "textiles-women",
-      "type": "textiles",
-      "children": [
-        {
-          "id": 10,
-          "name": "Categories",
-          "slug": "textiles-women-categories",
-          "children": [
-            { "id": 20, "name": "Dresses & Gowns", "slug": "textiles-women-categories-dresses-gowns" }
-          ]
+    "status": "success",
+    "data": {
+        "category": {
+            "id": 5,
+            "type": "textiles",
+            "name": "Dresses & Gowns",
+            "slug": "textiles-women-categories-dresses-gowns",
+            "description": null
+        },
+        "items": {
+            "current_page": 1,
+            "data": [
+                {
+                    "id": 1,
+                    "seller_profile_id": 1,
+                    "name": "reprehenderit amet esse Boubou",
+                    "gender": "male",
+                    "style": "Adire",
+                    "tribe": "Yoruba",
+                    "description": "Non error et velit quisquam vel esse maiores autem...",
+                    "image": "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=500&h=500&fit=crop",
+                    "size": "36",
+                    "processing_time_type": "quick_quick",
+                    "processing_days": 8,
+                    "price": "206.96",
+                    "status": "approved",
+                    "created_at": "2026-01-15T18:02:32.000000Z",
+                    "updated_at": "2026-01-15T18:02:32.000000Z",
+                    "deleted_at": null,
+                    "rejection_reason": null,
+                    "category_id": 5,
+                    "avg_rating": 4,
+                    "category": {
+                        "id": 5,
+                        "name": "Dresses & Gowns",
+                        "slug": "textiles-women-categories-dresses-gowns",
+                        "parent_id": 4,
+                        "type": "textiles"
+                    },
+                    "seller_profile": {
+                        "id": 1,
+                        "business_name": "Steuber-Altenwerth",
+                        "business_email": "evan99@anderson.info",
+                        "city": "McGlynnview",
+                        "state": "Missouri"
+                    }
+                }
+            ],
+            "per_page": 2,
+            "total": 3
         }
-      ]
     }
-  ]
 }
 ```
 
 ---
 
-### 2) Fetch Items for a Category/Subcategory
+### 1.3 Afro Beauty Services returns Businesses (NOT Products)
 
-**GET** `/api/categories/{type}/{slug}/items`
+**GET** `/api/categories/afro_beauty/{slug}/items`
 
-**Path params**
-- `type`: one of the category types
-- `slug`: the slug returned from `/api/categories?type=...`
+If the slug starts with `afro-beauty-services...`, the endpoint returns **business profiles**.
 
-**Query params**
-- `per_page` (optional)
-
-**Example**
+**Example request**
 ```bash
-curl "https://<host>/api/categories/textiles/textiles-women-categories-dresses-gowns/items?per_page=10"
+curl -X GET "https://<host>/api/categories/afro_beauty/afro-beauty-services-hair-care-styling-services/items?per_page=2" \
+  -H "Accept: application/json"
 ```
 
-**Response**
-- For product types: returns paginated **products**
-- For business types: returns paginated **business profiles**
-- For sustainability type: returns paginated **initiatives**
+**Example response (real, businesses)**
+```json
+{
+  "status": "success",
+  "data": {
+    "category": {
+      "id": 57,
+      "type": "afro_beauty",
+      "name": "Hair Care & Styling Services",
+      "slug": "afro-beauty-services-hair-care-styling-services",
+      "description": null
+    },
+    "items": {
+      "current_page": 1,
+      "data": [
+        {
+          "id": 2,
+          "user_id": 2,
+          "category": "afro_beauty",
+          "country": "Solomon Islands",
+          "state": "Hawaii",
+          "city": "Douglasville",
+          "address": "1691 McClure Fords Apt. 468",
+          "business_email": "bernadine91@wisozk.com",
+          "business_phone_number": "1-820-588-6654",
+          "business_name": "Koelpin, Bahringer and Schultz Afro_beauty",
+          "business_description": "Sunt eos soluta esse...",
+          "business_logo": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop",
+          "offering_type": "providing_service",
+          "service_list": "[{\"name\":\"Hair Styling\",\"price\":5000}]",
+          "store_status": "approved",
+          "category_id": 56,
+          "subcategory_id": 57,
+          "user": {
+            "id": 2,
+            "firstname": "Carole",
+            "lastname": "Becker"
+          },
+          "category_relation": {
+            "id": 56,
+            "name": "Categories Under Services",
+            "slug": "afro-beauty-services",
+            "parent_id": null,
+            "type": "afro_beauty"
+          },
+          "subcategory_relation": {
+            "id": 57,
+            "name": "Hair Care & Styling Services",
+            "slug": "afro-beauty-services-hair-care-styling-services",
+            "parent_id": 56,
+            "type": "afro_beauty"
+          }
+        }
+      ],
+      "per_page": 2,
+      "total": 1
+    }
+  }
+}
+```
 
 ---
 
-## Landing Page Taxonomy (What Exists)
+## 2) Products Search + Filters
 
-### Box 1: TEXTILES (`type=textiles`)
-- For Women → Categories → Dresses & Gowns, Two-Piece Sets, Wrappers & Skirts, Tops, Headwear & Accessories, Outerwear, Special Occasion
-- For Men → Categories → Full Suits & Gowns, Two-Piece Sets, Shirts & Tops, Trousers, Wrap Garments, Outerwear, Accessories
-- Unisex / For Both → Categories → Modern Casual Wear, Capes & Stoles, Home & Lounge Wear, Accessories
-- Filter by Fabrics → Ankara, Kente, Adinkra, Aso Oke, …
+### 2.1 Public filters metadata (includes category trees)
 
-### Box 2: AFRO BEAUTY (`type=afro_beauty`)
-- Categories Under Products → Hair Care, Skin Care, Makeup & Color Cosmetics, Fragrance, Men’s Grooming, Wellness & Bath/Body, Children’s Afro-Beauty, Tools & Accessories
-- Categories Under Services → Hair Care & Styling Services, Skin Care & Aesthetics Services, Makeup Artistry Services, Barbering Services, Education & Consulting Services, Wellness & Therapeutic Services
+**GET** `/api/products/filters`
 
-> Note: In categories, the Services subtree uses slugs starting with `afro-beauty-services...`. The items endpoint will return **business profiles** for that subtree.
+**Headers**
+- `Accept: application/json`
 
-### Box 3: SHOES & BAGS (`type=shoes_bags`)
-- For Women → Slides & Mules, Block Heel Sandals & Pumps, Wedges, Ballet Flats & Loafers, Evening & Wedding Shoes
-- For Men → African Print Slip-Ons & Loafers, Leather Sandals, Modern Māṣǝr, Brogues & Derbies
+**Example request**
+```bash
+curl -X GET "https://<host>/api/products/filters" \
+  -H "Accept: application/json"
+```
 
-### Box 4: ART (`type=art`)
-- Sculpture, Painting, Mask, Mixed Media, Installation
+**Example response (real, trimmed)**
+- Contains `category_trees.textiles`, `category_trees.afro_beauty`, `category_trees.shoes_bags`, `category_trees.art`
+- Also contains `genders`, `styles`, `tribes`, `price_range`, `sort_options`
+
+```json
+{
+  "status": "success",
+  "data": {
+    "product_category_types": ["textiles", "afro_beauty", "shoes_bags", "art"],
+    "category_trees": {
+      "textiles": [ {"id": 1, "name": "For Women", "slug": "textiles-women", "children": [ ... ] } ],
+      "afro_beauty": [ {"id": 55, "name": "Categories Under Products", "slug": "afro-beauty-products", "children": [ ... ] } ],
+      "shoes_bags": [ {"id": 70, "name": "For Women", "slug": "shoes-bags-women", "children": [ ... ] } ],
+      "art": [ {"id": 76, "name": "Sculpture", "slug": "art-sculpture" } ]
+    },
+    "price_range": {"min": "89.81", "max": "467.04"},
+    "sort_options": [
+      {"value": "newest", "label": "Newest First"},
+      {"value": "price_asc", "label": "Price: Low to High"}
+    ]
+  }
+}
+```
 
 ---
 
-## Fetching Items for a Category/Subcategory
+### 2.2 Product search (AUTH REQUIRED)
 
-### Textiles example
-```bash
-GET /api/categories/textiles/textiles-men-categories-shirts-tops/items
-```
-Returns **Products**.
-
-### Afro Beauty products example
-```bash
-GET /api/categories/afro_beauty/afro-beauty-products-hair-care/items
-```
-Returns **Products**.
-
-### Afro Beauty services example
-```bash
-GET /api/categories/afro_beauty/afro-beauty-services-hair-care-styling-services/items
-```
-Returns **Business Profiles**.
-
-### Shoes & Bags example
-```bash
-GET /api/categories/shoes_bags/shoes-bags-women-categories-slides-mules/items
-```
-Returns **Products**.
-
-### Art example
-```bash
-GET /api/categories/art/art-sculpture/items
-```
-Returns **Products**.
-
----
-
-## Products: Browse / Search / Filters
-
-### 1) Browse Products (Public)
-**GET** `/api/products/browse`
-
-Supports:
-- `q` (search term)
-- `sort` (`newest|popular|price_asc|price_desc`)
-- `price_min`, `price_max`
-- `gender`, `style`, `tribe`
-
-> Note: browse is generic. For landing categories, prefer `/api/categories/{type}/{slug}/items`.
-
----
-
-### 2) Search Products
 **GET** `/api/products/search`
+
+**Headers**
+- `Accept: application/json`
+- `Authorization: Bearer <token>`
 
 **Query params**
 - `q` (required)
 - `type` (optional): `textiles|afro_beauty|shoes_bags|art`
-- `category_id` (optional)
 - `category_slug` (optional)
-- plus existing filters: `gender, style, tribe, price_min, price_max, per_page`
+- `category_id` (optional)
+- `gender`, `style`, `tribe`, `price_min`, `price_max`, `per_page`
 
-**Example: search within Textiles**
+**Example request**
 ```bash
-GET /api/products/search?q=ankara&type=textiles
+curl -X GET "https://<host>/api/products/search?q=a&type=textiles&per_page=2" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer <token>"
 ```
 
-**Example: search within a category subtree**
-```bash
-GET /api/products/search?q=dress&category_slug=textiles-women
+**Example response (real)**
+```json
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "seller_profile_id": 1,
+        "name": "reprehenderit amet esse Boubou",
+        "gender": "male",
+        "style": "Adire",
+        "tribe": "Yoruba",
+        "image": "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=500&h=500&fit=crop",
+        "price": "206.96",
+        "status": "approved",
+        "category_id": 5,
+        "seller_profile": {"id": 1, "business_name": "Steuber-Altenwerth"},
+        "category": {"id": 5, "name": "Dresses & Gowns", "slug": "textiles-women-categories-dresses-gowns", "type": "textiles"}
+      }
+    ],
+    "per_page": 2,
+    "total": 15
+  }
+}
+```
+
+**If you call it without auth**
+```json
+{
+  "message": "Unauthenticated."
+}
 ```
 
 ---
 
-### 3) Product Filters Metadata
-**GET** `/api/products/filters`
+## 3) Businesses (Services): Public Search + Filters
 
-Returns:
-- `category_trees` for: textiles, afro_beauty, shoes_bags, art
-- plus generic filters: genders/styles/tribes/price_range/sort_options
+### 3.1 Business filters
+
+**GET** `/api/business/public/filters`
+
+**Example request**
+```bash
+curl -X GET "https://<host>/api/business/public/filters" \
+  -H "Accept: application/json"
+```
+
+**Response contains**
+- `category_trees.school`
+- `category_trees.afro_beauty_services` (services subtree)
 
 ---
 
-## Businesses (Services): Public Search / Filters
+### 3.2 Business search
 
-### 1) Public Business Listing
-**GET** `/api/business/public`
-
-### 2) Search Businesses
 **GET** `/api/business/public/search`
 
 **Query params**
 - `q` (required)
-- legacy filters: `category` (school|afro_beauty), `offering_type`, `state`, `city`
-- new filters (recommended):
-  - `category_id`
-  - `category_slug`
+- optional: `category` (legacy), `category_id`, `category_slug`, `state`, `city`, `sort`, `per_page`
 
-**Example: search Afro Beauty service providers under services subtree**
+**Example request**
 ```bash
-GET /api/business/public/search?q=hair&category_slug=afro-beauty-services
+curl -X GET "https://<host>/api/business/public/search?q=school&per_page=2" \
+  -H "Accept: application/json"
 ```
 
-### 3) Business Filters
-**GET** `/api/business/public/filters`
-
-Returns:
-- `category_trees.school`
-- `category_trees.afro_beauty_services`
-- plus states/cities/offering_types
+**Example response (real)**
+```json
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "user_id": 1,
+        "category": "school",
+        "business_name": "Quigley, Roberts and Gulgowski School",
+        "business_email": "samson.windler@bergstrom.net",
+        "business_logo": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=400&fit=crop",
+        "school_type": "fashion",
+        "store_status": "approved",
+        "category_id": 81,
+        "subcategory_id": 82,
+        "user": {"id": 1, "firstname": "Test", "lastname": "User"}
+      }
+    ],
+    "per_page": 2,
+    "total": 1
+  }
+}
+```
 
 ---
 
-## Sustainability: Index / Search / Filters
+## 4) Sustainability: Search + Filters
 
-### 1) List initiatives
-**GET** `/api/sustainability`
+### 4.1 Filters
 
-Supports:
-- legacy `category` (environmental/social/economic/governance)
-- new (recommended): `category_id`, `category_slug`
-
-### 2) Search initiatives
-**GET** `/api/sustainability/search`
-
-Supports:
-- `q` (required)
-- legacy `category`
-- new: `category_id`, `category_slug`
-
-### 3) Sustainability Filters
 **GET** `/api/sustainability/filters`
 
-Returns:
-- legacy `categories`
-- new `category_tree` from categories table
+Includes:
+- legacy `categories` (environmental/social/economic/governance)
+- new `category_tree` (from `/api/categories?type=sustainability`)
+
+### 4.2 Search
+
+**GET** `/api/sustainability/search`
+
+**Query params**
+- `q` (required)
+- legacy: `category`
+- new: `category_id`, `category_slug`
+
+**Example request**
+```bash
+curl -X GET "https://<host>/api/sustainability/search?q=initiative&per_page=2" \
+  -H "Accept: application/json"
+```
+
+**Example response (real)**
+```json
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "title": "Zero Waste Fashion Initiative",
+        "category": "environmental",
+        "status": "active",
+        "target_amount": "1000000.00",
+        "current_amount": "350000.00",
+        "category_id": 113,
+        "admin": {"id": 1, "firstname": "Super", "lastname": "Admin"}
+      }
+    ],
+    "per_page": 2,
+    "total": 2
+  }
+}
+```
 
 ---
 
-## Recommended Client Flow (End-to-End)
+## 5) Recommended client implementation
 
-### Landing page → category navigation
-1. Load categories for a landing box
-   - Textiles: `GET /api/categories?type=textiles`
-   - Afro Beauty: `GET /api/categories?type=afro_beauty`
-   - Shoes & Bags: `GET /api/categories?type=shoes_bags`
-   - Art: `GET /api/categories?type=art`
+### Category browsing
+1. Load category tree: `GET /api/categories?type=<landing_type>`
+2. Render nodes.
+3. On click: `GET /api/categories/{type}/{slug}/items`
 
-2. Render the tree using `children`.
-
-3. When user taps any node (including “View all”), call:
-   - `GET /api/categories/{type}/{slug}/items`
-
-Because the backend filters by that category **and all descendants**, “View all” works naturally by using the parent node slug.
+This is the **primary** and **correct** way to power category screens.
 
 ### Search
-- Use `/api/products/search` for product landing pages
-- Use `/api/business/public/search` for service landing pages
-
-### Filters
-- Use `/api/products/filters` and `/api/business/public/filters` to pre-load filter options.
+- Products: `/api/products/search` (auth required)
+- Services: `/api/business/public/search` (public)
 
 ---
-
-## Notes / Constraints
-- `slug` is globally unique. Do not guess slugs.
-- `category_slug` filtering works on **subtrees** (category + descendants).
-- For Afro Beauty, the services subtree is identified by slugs starting with `afro-beauty-services...`.
