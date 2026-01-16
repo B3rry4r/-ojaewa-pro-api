@@ -28,9 +28,16 @@ class BusinessProfileApiTest extends TestCase
         $this->token = $this->user->createToken('test-token')->plainTextToken;
         $this->headers = ['Authorization' => 'Bearer ' . $this->token];
         
+        // Seed categories for testing
+        $this->seed(\Database\Seeders\CategorySeeder::class);
+        
+        // Get a valid category_id for afro_beauty_services
+        $category = \App\Models\Category::where('type', 'afro_beauty_services')->first();
+        
         // Sample business profile data
         $this->businessData = [
-            'category' => 'beauty',
+            'category_id' => $category->id,
+            'category' => 'afro_beauty_services',
             'offering_type' => 'providing_service',
             'country' => 'Nigeria',
             'state' => 'Lagos',
@@ -74,7 +81,7 @@ class BusinessProfileApiTest extends TestCase
             
         $this->assertDatabaseHas('business_profiles', [
             'user_id' => $this->user->id,
-            'category' => 'beauty',
+            'category' => 'afro_beauty_services',
             'business_name' => 'Glamour Beauty Palace',
         ]);
     }
@@ -312,18 +319,19 @@ class BusinessProfileApiTest extends TestCase
         $errors = $response->json('errors');
         $this->assertArrayHasKey('product_list', $errors);
         
-        // Test that when offering_type is selling_product, business_certificates is required
-        $invalidData = $this->businessData;
-        $invalidData['offering_type'] = 'selling_product';
-        $invalidData['product_list'] = json_encode([['name' => 'Product 1', 'price' => 5000]]);
-        unset($invalidData['business_certificates']);
+        // Test that when offering_type is selling_product, product_list is properly validated
+        // NOTE: business_certificates are uploaded separately after creation via /api/business/{id}/upload
+        $validData = $this->businessData;
+        $validData['offering_type'] = 'selling_product';
+        $validData['product_list'] = json_encode([['name' => 'Product 1', 'price' => 5000]]);
+        unset($validData['service_list']);
+        unset($validData['professional_title']);
         
         $response = $this->withHeaders($this->headers)
-            ->postJson('/api/business', $invalidData);
+            ->postJson('/api/business', $validData);
             
-        $response->assertStatus(422);
-        $errors = $response->json('errors');
-        $this->assertArrayHasKey('business_certificates', $errors);
+        // Should succeed as business_certificates are uploaded after creation
+        $response->assertStatus(201);
     }
     
     /**
@@ -345,8 +353,10 @@ class BusinessProfileApiTest extends TestCase
         $this->assertArrayHasKey('professional_title', $errors);
         
         // Test that school category requires school_type
+        $schoolCategory = \App\Models\Category::where('type', 'school')->first();
         $schoolData = $this->businessData;
         $schoolData['category'] = 'school';
+        $schoolData['category_id'] = $schoolCategory->id;
         // No school_type provided
         
         $response = $this->withHeaders($this->headers)
@@ -359,6 +369,7 @@ class BusinessProfileApiTest extends TestCase
         // Test that school category requires school_biography
         $schoolData = $this->businessData;
         $schoolData['category'] = 'school';
+        $schoolData['category_id'] = $schoolCategory->id;
         $schoolData['school_type'] = 'fashion';
         // No school_biography provided
         
@@ -368,18 +379,6 @@ class BusinessProfileApiTest extends TestCase
         $response->assertStatus(422);
         $errors = $response->json('errors');
         $this->assertArrayHasKey('school_biography', $errors);
-        
-        // Test that music category requires music_category
-        $musicData = $this->businessData;
-        $musicData['category'] = 'music';
-        // No music_category provided
-        
-        $response = $this->withHeaders($this->headers)
-            ->postJson('/api/business', $musicData);
-            
-        $response->assertStatus(422);
-        $errors = $response->json('errors');
-        $this->assertArrayHasKey('music_category', $errors);
     }
     
     /**

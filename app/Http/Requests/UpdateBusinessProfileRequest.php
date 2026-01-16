@@ -25,7 +25,7 @@ class UpdateBusinessProfileRequest extends FormRequest
         $rules = [
             'category_id' => 'sometimes|nullable|exists:categories,id',
             'subcategory_id' => 'sometimes|nullable|exists:categories,id',
-            'category' => 'sometimes|required|string|in:school,afro_beauty',
+            'category' => 'sometimes|required|string|in:school,art,afro_beauty_services',
             'country' => 'sometimes|required|string|max:100',
             'state' => 'sometimes|required|string|max:100',
             'city' => 'sometimes|required|string|max:100',
@@ -89,20 +89,12 @@ class UpdateBusinessProfileRequest extends FormRequest
             }
         }
 
-        if ($category === 'music') {
-            if ($this->has('music_category')) {
-                $rules['music_category'] = 'required|string|in:dj,artist,producer';
-            }
-            // identity_document uploaded after creation via /api/business/{id}/upload
-            
-            // At least one of youtube or spotify is required for music businesses
-            if (($this->has('youtube') || $this->has('spotify')) && 
-                empty($this->youtube) && empty($this->spotify) &&
-                empty($businessProfile->youtube) && empty($businessProfile->spotify)) {
-                $rules['youtube'] = 'required_without:spotify|string|max:255';
-                $rules['spotify'] = 'required_without:youtube|string|max:255';
-            }
+        if ($category === 'art') {
+            // Art businesses: no special fields required
+            // (leave block empty)
         }
+
+        // Legacy music category removed
 
         return $rules;
     }

@@ -323,20 +323,14 @@ class BusinessProfileController extends Controller
 
         // New category system (recommended)
         if ($request->filled('category_id')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('category_id', $request->category_id)
-                  ->orWhere('subcategory_id', $request->category_id);
-            });
+            $query->where('category_id', $request->category_id);
         }
 
         if ($request->filled('category_slug')) {
             $category = \App\Models\Category::where('slug', $request->category_slug)->first();
             if ($category) {
                 $ids = $category->getSelfAndDescendantIds();
-                $query->where(function ($q) use ($ids) {
-                    $q->whereIn('category_id', $ids)
-                      ->orWhereIn('subcategory_id', $ids);
-                });
+                $query->whereIn('category_id', $ids);
             }
         }
 
@@ -394,8 +388,8 @@ class BusinessProfileController extends Controller
             // New category trees (recommended for client)
             'category_trees' => [
                 'school' => \App\Models\Category::where('type', 'school')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
-                // Afro Beauty services subtree only (businesses)
-                'afro_beauty_services' => \App\Models\Category::where('type', 'afro_beauty')->where('slug', 'afro-beauty-services')->with('children.children.children')->first(),
+                'art' => \App\Models\Category::where('type', 'art')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                'afro_beauty_services' => \App\Models\Category::where('type', 'afro_beauty_services')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
             ],
             
             'offering_types' => BusinessProfile::where('store_status', 'approved')

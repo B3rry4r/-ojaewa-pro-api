@@ -30,12 +30,12 @@ class UpdateProductRequest extends FormRequest
         return [
             'category_id' => 'sometimes|exists:categories,id',
             'name' => 'sometimes|string|max:255',
-            'gender' => 'sometimes|in:male,female,unisex',
-            'style' => 'sometimes|string|max:100',
-            'tribe' => 'sometimes|string|max:100',
+            'gender' => 'sometimes|nullable|in:male,female,unisex',
+            'style' => 'sometimes|nullable|string|max:100',
+            'tribe' => 'sometimes|nullable|string|max:100',
             'description' => 'sometimes|string|max:1000',
             'image' => 'nullable|string|max:2000', // URL for now, will be file upload later
-            'size' => 'sometimes|string|max:50',
+            'size' => 'sometimes|nullable|string|max:50',
             'processing_time_type' => 'sometimes|in:normal,quick_quick',
             'processing_days' => 'sometimes|integer|min:1|max:30',
             'price' => 'sometimes|numeric|min:0.01',

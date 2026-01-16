@@ -7,6 +7,29 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
+/**
+ * CategorySeeder - Final Locked Model
+ * 
+ * LANDING BOX → ENTITY MAPPING:
+ * =====================================
+ * 
+ * PRODUCT CATALOGS (return Products):
+ * - textiles → Products (3 levels: Group → Leaf)
+ * - shoes_bags → Products (3 levels: Group → Leaf)
+ * - afro_beauty_products → Products (2 levels: Leaf only)
+ * 
+ * BUSINESS DIRECTORIES (return BusinessProfiles) - 2 levels only:
+ * - art → Businesses (2 levels: Leaf only)
+ * - school → Businesses (2 levels: Leaf only)
+ * - afro_beauty_services → Businesses (2 levels: Leaf only)
+ * 
+ * INITIATIVES (return SustainabilityInitiatives) - 2 levels only:
+ * - sustainability → Initiatives (2 levels: Leaf only)
+ * 
+ * AFRO BEAUTY: Split into two tabs (Products + Services)
+ * - Tab 1: afro_beauty_products → Products
+ * - Tab 2: afro_beauty_services → Businesses
+ */
 class CategorySeeder extends Seeder
 {
     /**
@@ -14,96 +37,89 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        // LANDING PAGE BOX 1: TEXTILES (replaces Market)
-        $this->createTextilesCategories();
+        // PRODUCT CATALOGS (return Products)
+        $this->createTextilesCategories();      // 3 levels
+        $this->createShoesAndBagsCategories();  // 3 levels
+        $this->createAfroBeautyProductCategories();  // 2 levels
 
-        // LANDING PAGE BOX 2: AFRO BEAUTY (replaces Beauty)
-        $this->createAfroBeautyCategories();
+        // BUSINESS DIRECTORIES (return Businesses) - 2 levels
+        $this->createArtCategories();           // 2 levels - returns Businesses
+        $this->createSchoolCategories();        // 2 levels - returns Businesses
+        $this->createAfroBeautyServiceCategories();  // 2 levels - returns Businesses
 
-        // LANDING PAGE BOX 3: SHOES AND BAGS (replaces Brands)
-        $this->createShoesAndBagsCategories();
-
-        // LANDING PAGE BOX 4: ART (replaces Music)
-        $this->createArtCategories();
-
-        // Keep existing School categories (until you provide new school taxonomy)
-        $this->createSchoolCategories();
-
-        // Keep existing Sustainability categories (until you provide new sustainability taxonomy)
+        // INITIATIVES (return SustainabilityInitiatives) - 2 levels
         $this->createSustainabilityCategories();
     }
     
+    /**
+     * TEXTILES - Product Catalog (3 levels)
+     * Structure: Group (Women/Men/Unisex/Fabrics) → Leaf categories
+     * Returns: Products
+     */
     private function createTextilesCategories(): void
     {
-        // Top-level: For Women / For Men / Unisex
         $women = Category::create([
-            'name' => 'For Women',
+            'name' => 'Women',
             'slug' => 'textiles-women',
             'type' => 'textiles',
             'order' => 1,
         ]);
 
         $men = Category::create([
-            'name' => 'For Men',
+            'name' => 'Men',
             'slug' => 'textiles-men',
             'type' => 'textiles',
             'order' => 2,
         ]);
 
         $unisex = Category::create([
-            'name' => 'Unisex / For Both',
+            'name' => 'Unisex',
             'slug' => 'textiles-unisex',
             'type' => 'textiles',
             'order' => 3,
         ]);
 
-        // Women subcategories
-        $womenCategories = [
-            'Categories' => [
-                'Dresses & Gowns',
-                'Two-Piece Sets',
-                'Wrappers & Skirts',
-                'Tops',
-                'Headwear & Accessories',
-                'Outerwear',
-                'Special Occasion',
-            ],
-        ];
-        $this->createSubcategories($women, $womenCategories, 'textiles');
-
-        // Men subcategories
-        $menCategories = [
-            'Categories' => [
-                'Full Suits & Gowns',
-                'Two-Piece Sets',
-                'Shirts & Tops',
-                'Trousers',
-                'Wrap Garments',
-                'Outerwear',
-                'Accessories',
-            ],
-        ];
-        $this->createSubcategories($men, $menCategories, 'textiles');
-
-        // Unisex subcategories
-        $unisexCategories = [
-            'Categories' => [
-                'Modern Casual Wear',
-                'Capes & Stoles',
-                'Home & Lounge Wear',
-                'Accessories',
-            ],
-        ];
-        $this->createSubcategories($unisex, $unisexCategories, 'textiles');
-
-        // Fabric filters (as categories under Textiles root)
         $fabrics = Category::create([
-            'name' => 'Filter by Fabrics',
+            'name' => 'Fabrics',
             'slug' => 'textiles-fabrics',
             'type' => 'textiles',
             'order' => 4,
         ]);
 
+        // Leaf categories under Women
+        $womenLeaf = [
+            'Dresses & Gowns',
+            'Two-Piece Sets',
+            'Wrappers & Skirts',
+            'Tops',
+            'Headwear & Accessories',
+            'Outerwear',
+            'Special Occasion',
+        ];
+        $this->createLeafCategories($women, $womenLeaf, 'textiles');
+
+        // Leaf categories under Men
+        $menLeaf = [
+            'Full Suits & Gowns',
+            'Two-Piece Sets',
+            'Shirts & Tops',
+            'Trousers',
+            'Wrap Garments',
+            'Outerwear',
+            'Accessories',
+        ];
+        $this->createLeafCategories($men, $menLeaf, 'textiles');
+
+        // Leaf categories under Unisex
+        $unisexLeaf = [
+            'Modern Casual Wear',
+            'Capes & Stoles',
+            'Home & Lounge Wear',
+            'Accessories',
+        ];
+        $this->createLeafCategories($unisex, $unisexLeaf, 'textiles');
+
+        // Leaf categories under Fabrics
         $fabricList = [
             'Ankara',
             'Kente',
@@ -127,29 +143,57 @@ class CategorySeeder extends Seeder
             'Woolen fabrics',
             'Melhfa',
         ];
-
-        $fabricOrder = 1;
-        foreach ($fabricList as $name) {
-            Category::create([
-                'name' => $name,
-                'slug' => Str::slug($fabrics->slug . '-' . $name),
-                'parent_id' => $fabrics->id,
-                'type' => 'textiles',
-                'order' => $fabricOrder++,
-            ]);
-        }
+        $this->createLeafCategories($fabrics, $fabricList, 'textiles');
     }
 
-    private function createAfroBeautyCategories(): void
+    /**
+     * SHOES & BAGS - Product Catalog (3 levels)
+     * Structure: Group (Women/Men) → Leaf categories
+     * Returns: Products
+     */
+    private function createShoesAndBagsCategories(): void
     {
-        // Afro Beauty has products + services sections
-        $products = Category::create([
-            'name' => 'Categories Under Products',
-            'slug' => 'afro-beauty-products',
-            'type' => 'afro_beauty',
+        $women = Category::create([
+            'name' => 'Women',
+            'slug' => 'shoes-bags-women',
+            'type' => 'shoes_bags',
             'order' => 1,
         ]);
 
+        $womenLeaf = [
+            'Slides & Mules',
+            'Block Heel Sandals & Pumps',
+            'Wedges',
+            'Ballet Flats & Loafers',
+            'Evening & Wedding Shoes',
+        ];
+        $this->createLeafCategories($women, $womenLeaf, 'shoes_bags');
+
+        $men = Category::create([
+            'name' => 'Men',
+            'slug' => 'shoes-bags-men',
+            'type' => 'shoes_bags',
+            'order' => 2,
+        ]);
+
+        $menLeaf = [
+            'African Print Slip-Ons & Loafers',
+            'Leather Sandals',
+            'Modern Māṣǝr',
+            'Brogues & Derbies',
+        ];
+        $this->createLeafCategories($men, $menLeaf, 'shoes_bags');
+    }
+
+    /**
+     * AFRO BEAUTY PRODUCTS - Product Catalog (2 levels)
+     * Structure: Leaf categories only (no intermediate groups)
+     * Returns: Products
+     * 
+     * This is Tab 1 of Afro Beauty landing box
+     */
+    private function createAfroBeautyProductCategories(): void
+    {
         $productCats = [
             'Hair Care',
             'Skin Care',
@@ -165,20 +209,22 @@ class CategorySeeder extends Seeder
         foreach ($productCats as $name) {
             Category::create([
                 'name' => $name,
-                'slug' => Str::slug($products->slug . '-' . $name),
-                'parent_id' => $products->id,
-                'type' => 'afro_beauty',
+                'slug' => Str::slug('afro-beauty-products-' . $name),
+                'type' => 'afro_beauty_products',
                 'order' => $order++,
             ]);
         }
+    }
 
-        $services = Category::create([
-            'name' => 'Categories Under Services',
-            'slug' => 'afro-beauty-services',
-            'type' => 'afro_beauty',
-            'order' => 2,
-        ]);
-
+    /**
+     * AFRO BEAUTY SERVICES - Business Directory (2 levels)
+     * Structure: Leaf categories only (no intermediate groups)
+     * Returns: BusinessProfiles
+     * 
+     * This is Tab 2 of Afro Beauty landing box
+     */
+    private function createAfroBeautyServiceCategories(): void
+    {
         $serviceCats = [
             'Hair Care & Styling Services',
             'Skin Care & Aesthetics Services',
@@ -192,57 +238,21 @@ class CategorySeeder extends Seeder
         foreach ($serviceCats as $name) {
             Category::create([
                 'name' => $name,
-                'slug' => Str::slug($services->slug . '-' . $name),
-                'parent_id' => $services->id,
-                'type' => 'afro_beauty',
+                'slug' => Str::slug('afro-beauty-services-' . $name),
+                'type' => 'afro_beauty_services',
                 'order' => $order++,
             ]);
         }
-
-        // Additional filters are not categories in DB (brand, price range, ingredients, etc.)
-        // Those should be implemented as product attributes/filters later.
     }
 
-    private function createShoesAndBagsCategories(): void
-    {
-        $women = Category::create([
-            'name' => 'For Women',
-            'slug' => 'shoes-bags-women',
-            'type' => 'shoes_bags',
-            'order' => 1,
-        ]);
-
-        $womenCats = [
-            'Categories' => [
-                'Slides & Mules',
-                'Block Heel Sandals & Pumps',
-                'Wedges',
-                'Ballet Flats & Loafers',
-                'Evening & Wedding Shoes',
-            ],
-        ];
-        $this->createSubcategories($women, $womenCats, 'shoes_bags');
-
-        $men = Category::create([
-            'name' => 'For Men',
-            'slug' => 'shoes-bags-men',
-            'type' => 'shoes_bags',
-            'order' => 2,
-        ]);
-
-        $menCats = [
-            'Categories' => [
-                'African Print Slip-Ons & Loafers',
-                'Leather Sandals',
-                'Modern Māṣǝr',
-                'Brogues & Derbies',
-            ],
-        ];
-        $this->createSubcategories($men, $menCats, 'shoes_bags');
-    }
-
+    /**
+     * ART - Business Directory (2 levels)
+     * Structure: Leaf categories only
+     * Returns: BusinessProfiles (artists, galleries, studios)
+     */
     private function createArtCategories(): void
     {
+        // ART -> Leaf (business directory)
         $artCategories = [
             'Sculpture',
             'Painting',
@@ -262,78 +272,90 @@ class CategorySeeder extends Seeder
         }
     }
     
+    /**
+     * SCHOOL - Business Directory (2 levels)
+     * Structure: Leaf categories only
+     * Returns: BusinessProfiles (schools, educational institutions)
+     */
     private function createSchoolCategories(): void
     {
         $schoolCategories = [
-            'Academic Programs' => ['Undergraduate', 'Graduate', 'Professional Courses', 'Certifications'],
-            'Skills Training' => ['Technical Skills', 'Soft Skills', 'Digital Literacy', 'Entrepreneurship'],
-            'Online Learning' => ['E-Learning Platforms', 'Virtual Classrooms', 'Webinars', 'Tutorials'],
-            'Educational Resources' => ['Books', 'Study Materials', 'Research Tools', 'Learning Apps'],
+            'Undergraduate',
+            'Graduate',
+            'Professional Courses',
+            'Certifications',
+            'Technical Skills',
+            'Soft Skills',
+            'Digital Literacy',
+            'Entrepreneurship',
+            'E-Learning Platforms',
+            'Virtual Classrooms',
+            'Webinars',
+            'Tutorials',
         ];
-        
-        $this->createTopLevelWithSubcategories($schoolCategories, 'school');
-    }
-    
-    private function createSustainabilityCategories(): void
-    {
-        $sustainabilityCategories = [
-            'Eco-Friendly Products' => ['Biodegradable Items', 'Recycled Materials', 'Sustainable Fashion', 'Green Beauty'],
-            'Renewable Energy' => ['Solar Products', 'Wind Energy', 'Energy Storage', 'Efficiency Solutions'],
-            'Waste Management' => ['Recycling Solutions', 'Composting', 'Waste Reduction', 'Upcycling'],
-            'Sustainable Living' => ['Zero Waste', 'Minimalism', 'Organic Products', 'Sustainable Transport'],
-        ];
-        
-        $this->createTopLevelWithSubcategories($sustainabilityCategories, 'sustainability');
-    }
-    
-    private function createTopLevelWithSubcategories(array $categories, string $type): void
-    {
+
         $order = 1;
-        
-        foreach ($categories as $parentName => $subcategories) {
-            $parent = Category::create([
-                'name' => $parentName,
-                'slug' => Str::slug($parentName),
-                'type' => $type,
+        foreach ($schoolCategories as $name) {
+            Category::create([
+                'name' => $name,
+                'slug' => Str::slug('school-' . $name),
+                'type' => 'school',
                 'order' => $order++,
             ]);
-            
-            $subOrder = 1;
-            foreach ($subcategories as $subName) {
-                Category::create([
-                    'name' => $subName,
-                    'slug' => Str::slug($parent->slug . '-' . $subName),
-                    'parent_id' => $parent->id,
-                    'type' => $type,
-                    'order' => $subOrder++,
-                ]);
-            }
         }
     }
     
-    private function createSubcategories(Category $parent, array $categories, string $type): void
+    /**
+     * SUSTAINABILITY - Initiatives (2 levels)
+     * Structure: Leaf categories only
+     * Returns: SustainabilityInitiatives
+     */
+    private function createSustainabilityCategories(): void
+    {
+        $sustainabilityCategories = [
+            'Biodegradable Items',
+            'Recycled Materials',
+            'Sustainable Fashion',
+            'Green Beauty',
+            'Solar Products',
+            'Wind Energy',
+            'Energy Storage',
+            'Efficiency Solutions',
+            'Recycling Solutions',
+            'Composting',
+            'Waste Reduction',
+            'Upcycling',
+            'Zero Waste',
+            'Minimalism',
+            'Organic Products',
+            'Sustainable Transport',
+        ];
+
+        $order = 1;
+        foreach ($sustainabilityCategories as $name) {
+            Category::create([
+                'name' => $name,
+                'slug' => Str::slug('sustainability-' . $name),
+                'type' => 'sustainability',
+                'order' => $order++,
+            ]);
+        }
+    }
+    
+    /**
+     * Helper: Create leaf categories under a parent
+     */
+    private function createLeafCategories(Category $parent, array $names, string $type): void
     {
         $order = 1;
-        
-        foreach ($categories as $categoryName => $subcategories) {
-            $category = Category::create([
-                'name' => $categoryName,
-                'slug' => Str::slug($parent->slug . '-' . $categoryName),
+        foreach ($names as $name) {
+            Category::create([
+                'name' => $name,
+                'slug' => Str::slug($parent->slug . '-' . $name),
                 'parent_id' => $parent->id,
                 'type' => $type,
                 'order' => $order++,
             ]);
-            
-            $subOrder = 1;
-            foreach ($subcategories as $subName) {
-                Category::create([
-                    'name' => $subName,
-                    'slug' => Str::slug($category->slug . '-' . $subName),
-                    'parent_id' => $category->id,
-                    'type' => $type,
-                    'order' => $subOrder++,
-                ]);
-            }
         }
     }
 }

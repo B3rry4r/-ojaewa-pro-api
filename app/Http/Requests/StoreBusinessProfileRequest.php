@@ -2,8 +2,20 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
+/**
+ * StoreBusinessProfileRequest
+ * 
+ * Business profiles are registered under these category types:
+ * - school → Educational institutions
+ * - art → Artists, galleries, studios
+ * - afro_beauty_services → Beauty service providers
+ * 
+ * All business directory categories have 2 levels (leaf categories only).
+ */
 class StoreBusinessProfileRequest extends FormRequest
 {
     /**
@@ -22,9 +34,15 @@ class StoreBusinessProfileRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'category_id' => 'nullable|exists:categories,id',
+            // category_id should be a leaf category from business directory types
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+                Rule::exists('categories', 'id')->whereIn('type', Category::BUSINESS_TYPES),
+            ],
             'subcategory_id' => 'nullable|exists:categories,id',
-            'category' => 'required|string|in:school,afro_beauty',
+            // Legacy category field for backward compatibility
+            'category' => ['required', 'string', Rule::in(['school', 'art', 'afro_beauty_services'])],
             'country' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'city' => 'required|string|max:100',
@@ -46,7 +64,6 @@ class StoreBusinessProfileRequest extends FormRequest
             'school_type' => 'nullable|string|in:fashion,music,catering,beauty',
             'school_biography' => 'nullable|string|max:1000',
             'classes_offered' => 'nullable|json',
-            'music_category' => 'nullable|string|in:dj,artist,producer',
             'youtube' => 'nullable|string|max:255',
             'spotify' => 'nullable|string|max:255',
             'store_status' => 'nullable|string|in:pending,approved,deactivated',
@@ -75,17 +92,6 @@ class StoreBusinessProfileRequest extends FormRequest
             $rules['classes_offered'] = 'required|json';
         }
 
-        if ($this->category === 'music') {
-            $rules['music_category'] = 'required|string|in:dj,artist,producer';
-            // identity_document uploaded after creation via /api/business/{id}/upload
-            
-            // At least one of youtube or spotify is required
-            if (empty($this->youtube) && empty($this->spotify)) {
-                $rules['youtube'] = 'required_without:spotify|string|max:255';
-                $rules['spotify'] = 'required_without:youtube|string|max:255';
-            }
-        }
-
         return $rules;
     }
 
@@ -97,8 +103,9 @@ class StoreBusinessProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'youtube.required_without' => 'At least one music platform link (YouTube or Spotify) is required for music businesses.',
-            'spotify.required_without' => 'At least one music platform link (YouTube or Spotify) is required for music businesses.',
+            'category_id.required' => 'Please select a business category',
+            'category_id.exists' => 'The selected category is invalid or not a business category',
+            'category.in' => 'Category must be one of: school, art, afro_beauty_services',
         ];
     }
 }

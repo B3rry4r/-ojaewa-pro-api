@@ -25,25 +25,22 @@ class ProductSeeder extends Seeder
         // Deterministic category assignment so app navigation shows different products
         $targetSlugs = [
             // TEXTILES
-            'textiles-women-categories-dresses-gowns',
-            'textiles-women-categories-tops',
-            'textiles-men-categories-shirts-tops',
-            'textiles-men-categories-trousers',
-            'textiles-unisex-categories-modern-casual-wear',
+            'textiles-women-dresses-gowns',
+            'textiles-women-tops',
+            'textiles-men-shirts-tops',
+            'textiles-men-trousers',
+            'textiles-unisex-modern-casual-wear',
 
             // SHOES & BAGS
-            'shoes-bags-women-categories-slides-mules',
-            'shoes-bags-women-categories-evening-wedding-shoes',
-            'shoes-bags-men-categories-leather-sandals',
-            'shoes-bags-men-categories-brogues-derbies',
+            'shoes-bags-women-slides-mules',
+            'shoes-bags-women-evening-wedding-shoes',
+            'shoes-bags-men-leather-sandals',
+            'shoes-bags-men-brogues-derbies',
 
             // AFRO BEAUTY (Products)
             'afro-beauty-products-hair-care',
             'afro-beauty-products-skin-care',
 
-            // ART
-            'art-sculpture',
-            'art-painting',
         ];
 
         $categoriesBySlug = Category::whereIn('slug', $targetSlugs)
@@ -51,7 +48,7 @@ class ProductSeeder extends Seeder
             ->keyBy('slug');
 
         // Fallback to any product-catalog leaf categories if some slugs are missing
-        $fallbackLeafIds = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty', 'art'])
+        $fallbackLeafIds = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty_products'])
             ->whereDoesntHave('children')
             ->pluck('id')
             ->toArray();

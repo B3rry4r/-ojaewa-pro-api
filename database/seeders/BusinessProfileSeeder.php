@@ -17,7 +17,7 @@ class BusinessProfileSeeder extends Seeder
     {
         // Define the categories we need to create
         // Business profiles represent service providers (schools + afro beauty services)
-        $categories = ['school', 'afro_beauty'];
+        $categories = ['school', 'art', 'afro_beauty_services'];
         $neededUsers = count($categories);
 
         // Get first N users for creating sample businesses
@@ -37,11 +37,10 @@ class BusinessProfileSeeder extends Seeder
             ->get()
             ->groupBy('type');
 
-        // For afro_beauty business profiles, we attach them to the SERVICES subtree
-        $afroBeautyServices = Category::where('type', 'afro_beauty')
-            ->where('slug', 'afro-beauty-services')
-            ->with('children')
-            ->first();
+        // Leaf category pools for business directories (2 levels only)
+        $afroBeautyServiceLeafIds = Category::where('type', 'afro_beauty_services')->pluck('id')->toArray();
+        $artLeafIds = Category::where('type', 'art')->pluck('id')->toArray();
+        $schoolLeafIds = Category::where('type', 'school')->pluck('id')->toArray();
 
         // Create businesses per type with deterministic subcategories so subcategory screens differ
         foreach ($categories as $index => $category) {
@@ -50,14 +49,14 @@ class BusinessProfileSeeder extends Seeder
             // Base data for all business profiles
             $data = [
                 'user_id' => $user->id,
-                'category_id' => $category === 'afro_beauty'
-                    ? optional($afroBeautyServices)->id
-                    : optional($topLevelCategoryNodes[$category]?->first())->id,
+                'category_id' => match ($category) {
+                    'afro_beauty_services' => $afroBeautyServiceLeafIds[array_rand($afroBeautyServiceLeafIds)] ?? null,
+                    'art' => $artLeafIds[array_rand($artLeafIds)] ?? null,
+                    'school' => $schoolLeafIds[array_rand($schoolLeafIds)] ?? null,
+                    default => null,
+                },
 
-                // subcategory: for afro_beauty, pick a service category; for school, pick first child
-                'subcategory_id' => $category === 'afro_beauty'
-                    ? optional($afroBeautyServices?->children()->orderBy('id')->first())->id
-                    : optional(optional($topLevelCategoryNodes[$category]?->first())?->children()->orderBy('id')->first())->id,
+                'subcategory_id' => null,
                 'category' => $category,
                 'country' => fake()->country(),
                 'state' => fake()->state(),
@@ -73,7 +72,7 @@ class BusinessProfileSeeder extends Seeder
             ];
             
             // Add category-specific data
-            if ($category === 'afro_beauty') {
+            if ($category === 'afro_beauty_services') {
                 $data = array_merge($data, [
                     'offering_type' => 'providing_service',
                     'service_list' => json_encode([
@@ -104,14 +103,19 @@ class BusinessProfileSeeder extends Seeder
             BusinessProfile::create($data);
 
             // Create a second business under a different subcategory (if available)
-            $secondSubcategoryId = $category === 'afro_beauty'
-                ? optional($afroBeautyServices?->children()->orderByDesc('id')->first())->id
-                : optional(optional($topLevelCategoryNodes[$category]?->first())?->children()->orderByDesc('id')->first())->id;
-            if ($secondSubcategoryId && $secondSubcategoryId !== $data['subcategory_id']) {
+            // Optionally create a second business in a different leaf for richer data
+            $secondLeafId = match ($category) {
+                'afro_beauty_services' => $afroBeautyServiceLeafIds[array_rand($afroBeautyServiceLeafIds)] ?? null,
+                'art' => $artLeafIds[array_rand($artLeafIds)] ?? null,
+                'school' => $schoolLeafIds[array_rand($schoolLeafIds)] ?? null,
+                default => null,
+            };
+
+            if ($secondLeafId && $secondLeafId !== $data['category_id']) {
                 $data2 = $data;
                 $data2['business_name'] = fake()->company() . ' ' . ucfirst($category) . ' 2';
                 $data2['business_email'] = fake()->companyEmail();
-                $data2['subcategory_id'] = $secondSubcategoryId;
+                $data2['category_id'] = $secondLeafId;
                 BusinessProfile::create($data2);
             }
             

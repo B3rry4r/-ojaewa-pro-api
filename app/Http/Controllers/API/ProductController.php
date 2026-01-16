@@ -224,7 +224,7 @@ class ProductController extends Controller
             'q' => 'required|string|min:1|max:255',
             'category_id' => 'sometimes|integer|exists:categories,id',
             'category_slug' => 'sometimes|string|max:255',
-            'type' => 'sometimes|in:textiles,afro_beauty,shoes_bags,art',
+            'type' => 'sometimes|in:textiles,shoes_bags,afro_beauty_products',
             'gender' => 'sometimes|in:male,female,unisex',
             'style' => 'sometimes|string|max:100',
             'tribe' => 'sometimes|string|max:100',
@@ -409,14 +409,13 @@ class ProductController extends Controller
     {
         $filters = [
             // Category types that map to product catalogs
-            'product_category_types' => ['textiles', 'afro_beauty', 'shoes_bags', 'art'],
+            'product_category_types' => ['textiles', 'shoes_bags', 'afro_beauty_products'],
 
             // Category trees (client should use these to build browse UI)
             'category_trees' => [
                 'textiles' => \App\Models\Category::where('type', 'textiles')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
-                'afro_beauty' => \App\Models\Category::where('type', 'afro_beauty')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
                 'shoes_bags' => \App\Models\Category::where('type', 'shoes_bags')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
-                'art' => \App\Models\Category::where('type', 'art')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                'afro_beauty_products' => \App\Models\Category::where('type', 'afro_beauty_products')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
             ],
 
             'genders' => Product::select('gender')

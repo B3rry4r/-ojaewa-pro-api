@@ -26,7 +26,7 @@ It is designed to be sent to the client agent so they can implement the full onb
 - `Accept: application/json`
 - `Content-Type: application/json`
 
-**Request body (complete)**
+**Request body (complete — TEXTILES example)**
 ```json
 {
   "category_id": 5,
@@ -42,6 +42,38 @@ It is designed to be sent to the client agent so they can implement the full onb
   "price": 45000
 }
 ```
+
+**Request body (complete — SHOES & BAGS example)**
+```json
+{
+  "category_id": 70,
+  "name": "Leather Sandals",
+  "gender": "male",
+  "style": "Leather Sandals",
+  "tribe": "Hausa",
+  "description": "Handcrafted leather sandals with traditional patterns.",
+  "image": "https://images.unsplash.com/photo-1514986888952-8cd320577b68?w=500&h=500&fit=crop",
+  "size": "42",
+  "processing_time_type": "normal",
+  "processing_days": 4,
+  "price": 18000
+}
+```
+
+**Request body (complete — AFRO BEAUTY PRODUCTS example)**
+```json
+{
+  "category_id": 90,
+  "name": "Shea Butter Hair Cream",
+  "description": "Moisturizing hair cream for natural hair.",
+  "image": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500&h=500&fit=crop",
+  "processing_time_type": "normal",
+  "processing_days": 2,
+  "price": 3500
+}
+```
+
+> Note: Afro Beauty Products do **not** require `size`, `style`, `tribe`, or `gender`.
 
 **Validation rules (backend)**
 - `category_id` (required) must exist in `categories`
@@ -158,9 +190,9 @@ It is designed to be sent to the client agent so they can implement the full onb
 **Request body (complete, AFRO BEAUTY services example)**
 ```json
 {
-  "category": "afro_beauty",
-  "category_id": 56,
-  "subcategory_id": 57,
+  "category": "afro_beauty_services",
+  "category_id": 57,
+  "subcategory_id": null,
 
   "country": "Nigeria",
   "state": "Lagos",
