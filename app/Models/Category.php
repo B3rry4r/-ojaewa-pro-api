@@ -21,7 +21,6 @@ use Illuminate\Database\Eloquent\Builder;
  * - afro_beauty_products (2 levels: Leaf only)
  * 
  * BUSINESS DIRECTORIES (return BusinessProfiles) - 2 levels:
- * - art (2 levels: Leaf only)
  * - school (2 levels: Leaf only)
  * - afro_beauty_services (2 levels: Leaf only)
  * 
@@ -52,13 +51,13 @@ class Category extends Model
         'textiles',
         'shoes_bags',
         'afro_beauty_products',
+        'art',
     ];
     
     /**
      * Types that return BusinessProfiles
      */
     public const BUSINESS_TYPES = [
-        'art',
         'school',
         'afro_beauty_services',
     ];

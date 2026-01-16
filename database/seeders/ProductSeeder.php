@@ -41,6 +41,9 @@ class ProductSeeder extends Seeder
             'afro-beauty-products-hair-care',
             'afro-beauty-products-skin-care',
 
+            // ART (Products)
+            'art-products-sculpture',
+            'art-products-painting',
         ];
 
         $categoriesBySlug = Category::whereIn('slug', $targetSlugs)
@@ -48,7 +51,7 @@ class ProductSeeder extends Seeder
             ->keyBy('slug');
 
         // Fallback to any product-catalog leaf categories if some slugs are missing
-        $fallbackLeafIds = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty_products'])
+        $fallbackLeafIds = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty_products', 'art'])
             ->whereDoesntHave('children')
             ->pluck('id')
             ->toArray();

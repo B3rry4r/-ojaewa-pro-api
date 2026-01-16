@@ -318,18 +318,19 @@ curl -X GET "https://<host>/api/products/filters" \
 ```
 
 **Example response (real, trimmed)**
-- Contains `category_trees.textiles`, `category_trees.shoes_bags`, `category_trees.afro_beauty_products`
-- Also contains `genders`, `styles`, `tribes`, `price_range`, `sort_options`
+- Contains `category_trees.textiles`, `category_trees.shoes_bags`, `category_trees.afro_beauty_products`, `category_trees.art`
+- Also contains `fabrics`, `styles`, `tribes`, `price_range`, `sort_options`
 
 ```json
 {
   "status": "success",
   "data": {
-    "product_category_types": ["textiles", "shoes_bags", "afro_beauty_products"],
+    "product_category_types": ["textiles", "shoes_bags", "afro_beauty_products", "art"],
     "category_trees": {
       "textiles": [ {"id": 1, "name": "Women", "slug": "textiles-women", "children": [ ... ] } ],
       "afro_beauty_products": [ {"id": 55, "name": "Hair Care", "slug": "afro-beauty-products-hair-care" } ],
-      "shoes_bags": [ {"id": 70, "name": "Women", "slug": "shoes-bags-women", "children": [ ... ] } ]
+      "shoes_bags": [ {"id": 70, "name": "Women", "slug": "shoes-bags-women", "children": [ ... ] } ],
+      "art": [ {"id": 200, "name": "Products", "slug": "art-products", "children": [ {"id": 201, "name": "Sculpture", "slug": "art-products-sculpture"} ] } ]
     },
     "price_range": {"min": "89.81", "max": "467.04"},
     "sort_options": [
@@ -352,10 +353,10 @@ curl -X GET "https://<host>/api/products/filters" \
 
 **Query params**
 - `q` (required)
-- `type` (optional): `textiles|shoes_bags|afro_beauty_products`
+- `type` (optional): `textiles|shoes_bags|afro_beauty_products|art`
 - `category_slug` (optional)
 - `category_id` (optional)
-- `gender`, `style`, `tribe`, `price_min`, `price_max`, `per_page`
+- `style`, `tribe`, `fabric_type`, `price_min`, `price_max`, `per_page`
 
 **Example request**
 ```bash
@@ -519,12 +520,12 @@ curl -X GET "https://<host>/api/sustainability/search?q=initiative&per_page=2" \
 - Endpoint: `POST /api/products`
 - Required: `category_id`
   - Must be a valid category node under one of the product catalogs:
-    - `textiles`, `shoes_bags`, `afro_beauty_products`
+    - `textiles`, `shoes_bags`, `afro_beauty_products`, `art`
 
 ### Business profile creation (services)
 - Endpoint: `POST /api/business`
 - Recommended:
-  - `category_id` and `subcategory_id` picked from:
+  - `category_id` picked from:
     - `school` category tree, or
     - `afro_beauty_services` (leaf categories)
 

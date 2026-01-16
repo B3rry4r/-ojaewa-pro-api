@@ -42,7 +42,7 @@ class StoreBusinessProfileRequest extends FormRequest
             ],
             'subcategory_id' => 'nullable|exists:categories,id',
             // Legacy category field for backward compatibility
-            'category' => ['required', 'string', Rule::in(['school', 'art', 'afro_beauty_services'])],
+            'category' => ['required', 'string', Rule::in(['school', 'afro_beauty_services'])],
             'country' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'city' => 'required|string|max:100',

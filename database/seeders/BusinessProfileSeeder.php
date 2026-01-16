@@ -17,7 +17,7 @@ class BusinessProfileSeeder extends Seeder
     {
         // Define the categories we need to create
         // Business profiles represent service providers (schools + afro beauty services)
-        $categories = ['school', 'art', 'afro_beauty_services'];
+        $categories = ['school', 'afro_beauty_services'];
         $neededUsers = count($categories);
 
         // Get first N users for creating sample businesses
@@ -39,7 +39,6 @@ class BusinessProfileSeeder extends Seeder
 
         // Leaf category pools for business directories (2 levels only)
         $afroBeautyServiceLeafIds = Category::where('type', 'afro_beauty_services')->pluck('id')->toArray();
-        $artLeafIds = Category::where('type', 'art')->pluck('id')->toArray();
         $schoolLeafIds = Category::where('type', 'school')->pluck('id')->toArray();
 
         // Ensure the fixed test user always has an approved store
@@ -83,7 +82,6 @@ class BusinessProfileSeeder extends Seeder
                 'user_id' => $user->id,
                 'category_id' => match ($category) {
                     'afro_beauty_services' => $afroBeautyServiceLeafIds[array_rand($afroBeautyServiceLeafIds)] ?? null,
-                    'art' => $artLeafIds[array_rand($artLeafIds)] ?? null,
                     'school' => $schoolLeafIds[array_rand($schoolLeafIds)] ?? null,
                     default => null,
                 },
@@ -138,7 +136,6 @@ class BusinessProfileSeeder extends Seeder
             // Optionally create a second business in a different leaf for richer data
             $secondLeafId = match ($category) {
                 'afro_beauty_services' => $afroBeautyServiceLeafIds[array_rand($afroBeautyServiceLeafIds)] ?? null,
-                'art' => $artLeafIds[array_rand($artLeafIds)] ?? null,
                 'school' => $schoolLeafIds[array_rand($schoolLeafIds)] ?? null,
                 default => null,
             };

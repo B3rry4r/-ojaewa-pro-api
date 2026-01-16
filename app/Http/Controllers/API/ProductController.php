@@ -87,8 +87,7 @@ class ProductController extends Controller
                 ->where('id', '!=', $id)
                 ->where(function($query) use ($product) {
                     $query->where('style', $product->style)
-                          ->orWhere('tribe', $product->tribe)
-                          ->orWhere('gender', $product->gender);
+                          ->orWhere('tribe', $product->tribe);
                 })
                 ->with('sellerProfile:id,business_name,business_email,city,state')
                 ->inRandomOrder()
@@ -168,9 +167,9 @@ class ProductController extends Controller
     {
         // Validate request parameters
         $request->validate([
-            'gender' => 'sometimes|in:male,female,unisex',
             'tribe' => 'sometimes|string|max:100',
             'style' => 'sometimes|string|max:100',
+            'fabric_type' => 'sometimes|string|max:100',
             'price_min' => 'sometimes|numeric|min:0',
             'price_max' => 'sometimes|numeric|min:0',
             'limit' => 'sometimes|integer|min:1|max:20',
@@ -180,8 +179,8 @@ class ProductController extends Controller
         $query = Product::where('status', 'approved');
         
         // Apply filters if provided
-        if ($request->has('gender')) {
-            $query->where('gender', $request->gender);
+        if ($request->filled('fabric_type')) {
+            $query->where('fabric_type', $request->fabric_type);
         }
         
         if ($request->has('tribe')) {
@@ -224,10 +223,10 @@ class ProductController extends Controller
             'q' => 'required|string|min:1|max:255',
             'category_id' => 'sometimes|integer|exists:categories,id',
             'category_slug' => 'sometimes|string|max:255',
-            'type' => 'sometimes|in:textiles,shoes_bags,afro_beauty_products',
-            'gender' => 'sometimes|in:male,female,unisex',
+            'type' => 'sometimes|in:textiles,shoes_bags,afro_beauty_products,art',
             'style' => 'sometimes|string|max:100',
             'tribe' => 'sometimes|string|max:100',
+            'fabric_type' => 'sometimes|string|max:100',
             'price_min' => 'sometimes|numeric|min:0',
             'price_max' => 'sometimes|numeric|min:0',
             'per_page' => 'sometimes|integer|min:1|max:50',
@@ -260,8 +259,8 @@ class ProductController extends Controller
         }
 
         // Apply filters
-        if ($request->has('gender')) {
-            $query->where('gender', $request->gender);
+        if ($request->filled('fabric_type')) {
+            $query->where('fabric_type', $request->fabric_type);
         }
 
         if ($request->has('style')) {
@@ -272,11 +271,11 @@ class ProductController extends Controller
             $query->where('tribe', 'like', '%' . $request->tribe . '%');
         }
 
-        if ($request->has('price_min')) {
+        if ($request->filled('price_min')) {
             $query->where('price', '>=', $request->price_min);
         }
 
-        if ($request->has('price_max')) {
+        if ($request->filled('price_max')) {
             $query->where('price', '<=', $request->price_max);
         }
 
@@ -299,9 +298,9 @@ class ProductController extends Controller
     {
         $request->validate([
             'q' => 'nullable|string|max:255',
-            'gender' => 'nullable|in:male,female,unisex',
             'style' => 'nullable|string|max:100',
             'tribe' => 'nullable|string|max:100',
+            'fabric_type' => 'nullable|string|max:100',
             'price_min' => 'nullable|numeric|min:0',
             'price_max' => 'nullable|numeric|min:0',
             'sort' => 'nullable|in:price_asc,price_desc,newest,popular',
@@ -321,8 +320,8 @@ class ProductController extends Controller
         }
         
         // Filters
-        if ($request->filled('gender')) {
-            $query->where('gender', $request->gender);
+        if ($request->filled('fabric_type')) {
+            $query->where('fabric_type', $request->fabric_type);
         }
         
         if ($request->filled('style')) {
@@ -385,8 +384,7 @@ class ProductController extends Controller
                              ->where('id', '!=', $product->id)
                              ->where(function($q) use ($product) {
                                  $q->where('style', $product->style)
-                                   ->orWhere('tribe', $product->tribe)
-                                   ->orWhere('gender', $product->gender);
+                                   ->orWhere('tribe', $product->tribe);
                              })
                              ->with('sellerProfile:id,business_name')
                              ->inRandomOrder()
@@ -409,19 +407,21 @@ class ProductController extends Controller
     {
         $filters = [
             // Category types that map to product catalogs
-            'product_category_types' => ['textiles', 'shoes_bags', 'afro_beauty_products'],
+            'product_category_types' => ['textiles', 'shoes_bags', 'afro_beauty_products', 'art'],
 
             // Category trees (client should use these to build browse UI)
             'category_trees' => [
                 'textiles' => \App\Models\Category::where('type', 'textiles')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
                 'shoes_bags' => \App\Models\Category::where('type', 'shoes_bags')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
                 'afro_beauty_products' => \App\Models\Category::where('type', 'afro_beauty_products')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                'art' => \App\Models\Category::where('type', 'art')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
             ],
 
-            'genders' => Product::select('gender')
+            'fabrics' => Product::select('fabric_type')
+                               ->whereNotNull('fabric_type')
                                ->where('status', 'approved')
                                ->distinct()
-                               ->pluck('gender')
+                               ->pluck('fabric_type')
                                ->filter()
                                ->values(),
             

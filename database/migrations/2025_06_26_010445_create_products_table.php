@@ -15,12 +15,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('seller_profile_id')->nullable();
             $table->string('name');
-            $table->enum('gender', ['male', 'female', 'unisex']);
-            $table->string('style');
-            $table->string('tribe');
+            $table->enum('gender', ['male', 'female', 'unisex'])->nullable();
+            $table->string('style')->nullable();
+            $table->string('tribe')->nullable();
+            $table->string('fabric_type')->nullable();
             $table->text('description');
             $table->string('image')->nullable();
-            $table->string('size');
+            $table->string('size')->nullable();
             $table->enum('processing_time_type', ['normal', 'quick_quick']);
             $table->integer('processing_days');
             $table->decimal('price', 10, 2);

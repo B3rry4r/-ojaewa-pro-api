@@ -46,6 +46,7 @@ class StoreProductRequest extends FormRequest
             'description' => 'required|string|max:1000',
             'image' => 'nullable|string|max:2000', // URL for now, will be file upload later
             'processing_time_type' => 'required|in:normal,quick_quick',
+            'fabric_type' => 'nullable|string|max:100',
             'processing_days' => 'required|integer|min:1|max:30',
             'price' => 'required|numeric|min:0.01',
         ];
@@ -56,16 +57,20 @@ class StoreProductRequest extends FormRequest
 
         // Textiles & Shoes/Bags require apparel attributes
         if (in_array($categoryType, ['textiles', 'shoes_bags'])) {
-            $rules['gender'] = 'required|in:male,female,unisex';
+            $rules['gender'] = 'nullable|in:male,female,unisex';
             $rules['style'] = 'required|string|max:100';
             $rules['tribe'] = 'required|string|max:100';
             $rules['size'] = 'required|string|max:50';
+            $rules['fabric_type'] = $categoryType === 'textiles'
+                ? 'required|string|max:100'
+                : 'nullable|string|max:100';
         } else {
-            // Afro Beauty products should not require apparel-specific fields
+            // Afro Beauty products and Art products do not require apparel-specific fields
             $rules['gender'] = 'nullable|in:male,female,unisex';
             $rules['style'] = 'nullable|string|max:100';
             $rules['tribe'] = 'nullable|string|max:100';
             $rules['size'] = 'nullable|string|max:50';
+            $rules['fabric_type'] = 'nullable|string|max:100';
         }
 
         return $rules;

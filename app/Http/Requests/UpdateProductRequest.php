@@ -36,6 +36,7 @@ class UpdateProductRequest extends FormRequest
             'description' => 'sometimes|string|max:1000',
             'image' => 'nullable|string|max:2000', // URL for now, will be file upload later
             'size' => 'sometimes|nullable|string|max:50',
+            'fabric_type' => 'sometimes|nullable|string|max:100',
             'processing_time_type' => 'sometimes|in:normal,quick_quick',
             'processing_days' => 'sometimes|integer|min:1|max:30',
             'price' => 'sometimes|numeric|min:0.01',

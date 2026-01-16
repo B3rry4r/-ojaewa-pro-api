@@ -8,30 +8,14 @@ use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // TEXTILES (Products) -> Men/Women/Unisex/Fabrics -> Leaf
         $this->createTextilesCategories();
-
-        // AFRO BEAUTY PRODUCTS (Products) -> Leaf
         $this->createAfroBeautyProductsCategories();
-
-        // AFRO BEAUTY SERVICES (Businesses) -> Leaf
         $this->createAfroBeautyServicesCategories();
-
-        // SHOES & BAGS (Products) -> Men/Women -> Leaf
         $this->createShoesAndBagsCategories();
-
-        // ART (Businesses) -> Leaf
         $this->createArtCategories();
-
-        // SCHOOL (Businesses) -> Leaf
         $this->createSchoolCategories();
-
-        // SUSTAINABILITY (Initiatives) -> Leaf
         $this->createSustainabilityCategories();
     }
 
@@ -56,13 +40,6 @@ class CategorySeeder extends Seeder
             'slug' => 'textiles-unisex',
             'type' => 'textiles',
             'order' => 3,
-        ]);
-
-        $fabrics = Category::create([
-            'name' => 'Fabrics',
-            'slug' => 'textiles-fabrics',
-            'type' => 'textiles',
-            'order' => 4,
         ]);
 
         $this->createLeafChildren($women, [
@@ -90,30 +67,6 @@ class CategorySeeder extends Seeder
             'Capes & Stoles',
             'Home & Lounge Wear',
             'Accessories',
-        ]);
-
-        $this->createLeafChildren($fabrics, [
-            'Ankara',
-            'Kente',
-            'Adinkra',
-            'Bògòlanfini (Bogolan/Mud Cloth)',
-            'Aso Oke',
-            'Akwa Ocha',
-            'George & Super Wax',
-            'Kente Prestige',
-            'Faso Dan Fani',
-            'Korhogo Cloth',
-            'Kitenge & Kanga',
-            'Leso',
-            'Shúkà',
-            'Liputa',
-            'Raffia Cloth',
-            'Shweshwe',
-            'Lishu / Letishu',
-            'IsiShweshwe',
-            'Cotton Voile',
-            'Woolen Fabrics',
-            'Melhfa',
         ]);
     }
 
@@ -177,13 +130,20 @@ class CategorySeeder extends Seeder
 
     private function createArtCategories(): void
     {
-        $this->createLeafType('art', [
+        $products = Category::create([
+            'name' => 'Products',
+            'slug' => 'art-products',
+            'type' => 'art',
+            'order' => 1,
+        ]);
+
+        $this->createLeafChildren($products, [
             'Sculpture',
             'Painting',
             'Mask',
             'Mixed Media',
             'Installation',
-        ], 'art');
+        ]);
     }
 
     private function createSchoolCategories(): void

@@ -20,6 +20,7 @@ class ProductFactory extends Factory
     {
         $africanStyles = ['Ankara', 'Kente', 'Aso Oke', 'Agbada', 'Dashiki', 'Kaftan', 'Gele', 'Adire', 'Boubou'];
         $africanTribes = ['Yoruba', 'Igbo', 'Hausa', 'Ashanti', 'Zulu', 'Masai', 'Xhosa', 'Fulani', 'Tuareg'];
+        $fabrics = ['Ankara','Kente','Adinkra','Aso Oke','Akwa Ocha','George','Kente Prestige','Faso Dan Fani','Korhogo','Kitenge','Leso','Shuka','Liputa','Raffia','Shweshwe','Lishu','IsiShweshwe','Cotton Voile','Woolen','Melhfa'];
         $sizes = ['S', 'M', 'L', 'XL', 'XXL', '36', '38', '40', '42', '44'];
         $genders = ['male', 'female', 'unisex'];
         $status = ['pending', 'approved', 'rejected']; // Only these status values are valid
@@ -30,6 +31,7 @@ class ProductFactory extends Factory
             'gender' => $this->faker->randomElement($genders),
             'style' => $this->faker->randomElement($africanStyles),
             'tribe' => $this->faker->randomElement($africanTribes),
+            'fabric_type' => $this->faker->randomElement($fabrics),
             'description' => fake()->paragraphs(2, true),
             'image' => 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=500&h=500&fit=crop',
             'size' => $this->faker->randomElement($sizes),

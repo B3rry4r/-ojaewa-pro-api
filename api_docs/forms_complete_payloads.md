@@ -39,6 +39,7 @@ It is designed to be sent to the client agent so they can implement the full onb
   "size": "XL",
   "processing_time_type": "normal",
   "processing_days": 5,
+  "fabric_type": "Ankara",
   "price": 45000
 }
 ```
@@ -73,7 +74,7 @@ It is designed to be sent to the client agent so they can implement the full onb
 }
 ```
 
-> Note: Afro Beauty Products do **not** require `size`, `style`, `tribe`, or `gender`.
+> Note: Afro Beauty Products and Art Products do **not** require `size`, `style`, `tribe`, `gender`, or `fabric_type`. Textiles require `fabric_type`; Shoes & Bags do not.
 
 **Validation rules (backend)**
 - `category_id` (required) must exist in `categories`
@@ -156,7 +157,6 @@ It is designed to be sent to the client agent so they can implement the full onb
 {
   "category": "school",
   "category_id": 81,
-  "subcategory_id": 82,
 
   "country": "Nigeria",
   "state": "Lagos",

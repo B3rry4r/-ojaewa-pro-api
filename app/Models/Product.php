@@ -24,6 +24,7 @@ class Product extends Model
         'gender',
         'style',
         'tribe',
+        'fabric_type',
         'description',
         'image',
         'size',
