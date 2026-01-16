@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\SellerProfile;
 use App\Models\Category;
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -14,7 +15,6 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get all seller profiles
         $sellerProfiles = SellerProfile::all();
         
         if ($sellerProfiles->isEmpty()) {
@@ -22,65 +22,195 @@ class ProductSeeder extends Seeder
             return;
         }
 
-        // Deterministic category assignment so app navigation shows different products
-        $targetSlugs = [
-            // TEXTILES
-            'textiles-women-dresses-gowns',
-            'textiles-women-tops',
-            'textiles-men-shirts-tops',
-            'textiles-men-trousers',
-            'textiles-unisex-modern-casual-wear',
-
-            // SHOES & BAGS
-            'shoes-bags-women-slides-mules',
-            'shoes-bags-women-evening-wedding-shoes',
-            'shoes-bags-men-leather-sandals',
-            'shoes-bags-men-brogues-derbies',
-
-            // AFRO BEAUTY (Products)
-            'afro-beauty-products-hair-care',
-            'afro-beauty-products-skin-care',
-
-            // ART (Products)
-            'art-products-sculpture',
-            'art-products-painting',
+        // All leaf categories for products - organized by type
+        $productCategories = [
+            // TEXTILES - Women (3 products each)
+            'textiles-women-dresses-gowns' => ['gender' => 'female', 'count' => 3],
+            'textiles-women-two-piece-sets' => ['gender' => 'female', 'count' => 2],
+            'textiles-women-wrappers-skirts' => ['gender' => 'female', 'count' => 2],
+            'textiles-women-tops' => ['gender' => 'female', 'count' => 2],
+            'textiles-women-headwear-accessories' => ['gender' => 'female', 'count' => 2],
+            'textiles-women-outerwear' => ['gender' => 'female', 'count' => 1],
+            'textiles-women-special-occasion' => ['gender' => 'female', 'count' => 2],
+            
+            // TEXTILES - Men
+            'textiles-men-full-suits-gowns' => ['gender' => 'male', 'count' => 3],
+            'textiles-men-two-piece-sets' => ['gender' => 'male', 'count' => 2],
+            'textiles-men-shirts-tops' => ['gender' => 'male', 'count' => 3],
+            'textiles-men-trousers' => ['gender' => 'male', 'count' => 2],
+            'textiles-men-wrap-garments' => ['gender' => 'male', 'count' => 1],
+            'textiles-men-outerwear' => ['gender' => 'male', 'count' => 1],
+            'textiles-men-accessories' => ['gender' => 'male', 'count' => 2],
+            
+            // TEXTILES - Unisex
+            'textiles-unisex-modern-casual-wear' => ['gender' => 'unisex', 'count' => 3],
+            'textiles-unisex-capes-stoles' => ['gender' => 'unisex', 'count' => 1],
+            'textiles-unisex-home-lounge-wear' => ['gender' => 'unisex', 'count' => 2],
+            'textiles-unisex-accessories' => ['gender' => 'unisex', 'count' => 2],
+            
+            // SHOES & BAGS - Women
+            'shoes-bags-women-slides-mules' => ['gender' => 'female', 'count' => 2, 'type' => 'shoes_bags'],
+            'shoes-bags-women-block-heel-sandals-pumps' => ['gender' => 'female', 'count' => 2, 'type' => 'shoes_bags'],
+            'shoes-bags-women-wedges' => ['gender' => 'female', 'count' => 1, 'type' => 'shoes_bags'],
+            'shoes-bags-women-ballet-flats-loafers' => ['gender' => 'female', 'count' => 2, 'type' => 'shoes_bags'],
+            'shoes-bags-women-evening-wedding-shoes' => ['gender' => 'female', 'count' => 2, 'type' => 'shoes_bags'],
+            
+            // SHOES & BAGS - Men
+            'shoes-bags-men-african-print-slip-ons-loafers' => ['gender' => 'male', 'count' => 2, 'type' => 'shoes_bags'],
+            'shoes-bags-men-leather-sandals' => ['gender' => 'male', 'count' => 2, 'type' => 'shoes_bags'],
+            'shoes-bags-men-modern-masr' => ['gender' => 'male', 'count' => 1, 'type' => 'shoes_bags'],
+            'shoes-bags-men-brogues-derbies' => ['gender' => 'male', 'count' => 2, 'type' => 'shoes_bags'],
+            
+            // AFRO BEAUTY PRODUCTS
+            'afro-beauty-products-hair-care' => ['gender' => 'unisex', 'count' => 3, 'type' => 'afro_beauty_products'],
+            'afro-beauty-products-skin-care' => ['gender' => 'unisex', 'count' => 3, 'type' => 'afro_beauty_products'],
+            'afro-beauty-products-makeup-color-cosmetics' => ['gender' => 'female', 'count' => 2, 'type' => 'afro_beauty_products'],
+            'afro-beauty-products-fragrance' => ['gender' => 'unisex', 'count' => 2, 'type' => 'afro_beauty_products'],
+            'afro-beauty-products-mens-grooming' => ['gender' => 'male', 'count' => 2, 'type' => 'afro_beauty_products'],
+            'afro-beauty-products-wellness-bathbody' => ['gender' => 'unisex', 'count' => 2, 'type' => 'afro_beauty_products'],
+            'afro-beauty-products-childrens-afro-beauty' => ['gender' => 'unisex', 'count' => 1, 'type' => 'afro_beauty_products'],
+            'afro-beauty-products-tools-accessories' => ['gender' => 'unisex', 'count' => 2, 'type' => 'afro_beauty_products'],
+            
+            // ART PRODUCTS
+            'art-products-sculpture' => ['gender' => null, 'count' => 3, 'type' => 'art'],
+            'art-products-painting' => ['gender' => null, 'count' => 3, 'type' => 'art'],
+            'art-products-mask' => ['gender' => null, 'count' => 2, 'type' => 'art'],
+            'art-products-mixed-media' => ['gender' => null, 'count' => 2, 'type' => 'art'],
+            'art-products-installation' => ['gender' => null, 'count' => 1, 'type' => 'art'],
         ];
 
-        $categoriesBySlug = Category::whereIn('slug', $targetSlugs)
+        // Get all categories by slug
+        $categoriesBySlug = Category::whereIn('slug', array_keys($productCategories))
             ->get()
             ->keyBy('slug');
 
-        // Fallback to any product-catalog leaf categories if some slugs are missing
-        $fallbackLeafIds = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty_products', 'art'])
-            ->whereDoesntHave('children')
-            ->pluck('id')
-            ->toArray();
+        $this->command->info("Found " . $categoriesBySlug->count() . " product categories");
 
-        if ($categoriesBySlug->isEmpty() && empty($fallbackLeafIds)) {
-            $this->command->warn('No market categories found. Ensure CategorySeeder runs before ProductSeeder.');
-            return;
-        }
+        // Styles and tribes for textiles
+        $africanStyles = ['Ankara', 'Kente', 'Aso Oke', 'Agbada', 'Dashiki', 'Kaftan', 'Gele', 'Adire', 'Boubou'];
+        $africanTribes = ['Yoruba', 'Igbo', 'Hausa', 'Ashanti', 'Zulu', 'Masai', 'Xhosa', 'Fulani', 'Tuareg'];
+        $fabrics = ['Ankara', 'Kente', 'Adinkra', 'Aso Oke', 'Akwa Ocha', 'George', 'Kitenge', 'Shweshwe', 'Raffia'];
+        $sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+        $shoeSizes = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
-        // For each seller, create products across the specific categories
-        foreach ($sellerProfiles as $profile) {
-            $created = 0;
+        $totalCreated = 0;
+        $sellerIndex = 0;
 
-            foreach ($targetSlugs as $slug) {
-                $categoryId = $categoriesBySlug[$slug]->id ?? ($fallbackLeafIds[array_rand($fallbackLeafIds)] ?? null);
-                if (!$categoryId) {
-                    continue;
-                }
-
-                // Create 1 product per target category per seller (keeps categories distinct)
-                Product::factory()->create([
-                    'seller_profile_id' => $profile->id,
-                    'category_id' => $categoryId,
-                    'status' => 'approved',
-                ]);
-                $created++;
+        foreach ($productCategories as $slug => $config) {
+            $category = $categoriesBySlug[$slug] ?? null;
+            if (!$category) {
+                $this->command->warn("Category not found: {$slug}");
+                continue;
             }
 
-            $this->command->info("Created {$created} categorized products for seller {$profile->business_name}");
+            $count = $config['count'];
+            $gender = $config['gender'];
+            $categoryType = $config['type'] ?? $category->type;
+
+            for ($i = 0; $i < $count; $i++) {
+                // Distribute products across sellers
+                $seller = $sellerProfiles[$sellerIndex % $sellerProfiles->count()];
+                $sellerIndex++;
+
+                // Get appropriate image and name for category
+                $image = ProductFactory::getImageForCategory($slug);
+                $name = ProductFactory::getNameForCategory($slug);
+                
+                // Add variation to prevent exact duplicates
+                if ($i > 0) {
+                    $name .= ' - Style ' . ($i + 1);
+                }
+
+                $productData = [
+                    'seller_profile_id' => $seller->id,
+                    'category_id' => $category->id,
+                    'name' => $name,
+                    'image' => $image,
+                    'gender' => $gender,
+                    'status' => 'approved',
+                    'price' => fake()->randomFloat(2, 5000, 150000),
+                    'description' => $this->getDescriptionForCategory($slug),
+                    'processing_time_type' => fake()->randomElement(['normal', 'quick_quick']),
+                    'processing_days' => fake()->numberBetween(2, 14),
+                ];
+
+                // Add textile-specific fields
+                if (str_starts_with($slug, 'textiles-')) {
+                    $productData['style'] = fake()->randomElement($africanStyles);
+                    $productData['tribe'] = fake()->randomElement($africanTribes);
+                    $productData['fabric_type'] = fake()->randomElement($fabrics);
+                    $productData['size'] = fake()->randomElement($sizes);
+                }
+                // Shoes & bags - only size required
+                elseif (str_starts_with($slug, 'shoes-bags-')) {
+                    $productData['size'] = fake()->randomElement($shoeSizes);
+                    $productData['fabric_type'] = fake()->optional(0.3)->randomElement($fabrics);
+                    $productData['style'] = null;
+                    $productData['tribe'] = null;
+                }
+                // Afro beauty & art - no apparel fields
+                else {
+                    $productData['size'] = null;
+                    $productData['style'] = null;
+                    $productData['tribe'] = null;
+                    $productData['fabric_type'] = null;
+                }
+
+                Product::create($productData);
+                $totalCreated++;
+            }
         }
+
+        // Also create some pending and rejected products for testing
+        $testSeller = $sellerProfiles->first();
+        $firstCategory = $categoriesBySlug->first();
+        
+        if ($testSeller && $firstCategory) {
+            // Create pending products
+            for ($i = 0; $i < 3; $i++) {
+                Product::factory()->pending()->create([
+                    'seller_profile_id' => $testSeller->id,
+                    'category_id' => $firstCategory->id,
+                    'name' => 'Pending Product ' . ($i + 1),
+                ]);
+            }
+            
+            // Create rejected products
+            for ($i = 0; $i < 2; $i++) {
+                Product::factory()->rejected()->create([
+                    'seller_profile_id' => $testSeller->id,
+                    'category_id' => $firstCategory->id,
+                    'name' => 'Rejected Product ' . ($i + 1),
+                ]);
+            }
+            $totalCreated += 5;
+        }
+
+        $this->command->info("✓ Created {$totalCreated} products across all categories");
+    }
+
+    /**
+     * Get a description for a category
+     */
+    private function getDescriptionForCategory(string $slug): string
+    {
+        $descriptions = [
+            'textiles' => "Beautifully handcrafted African textile featuring traditional patterns and vibrant colors. Made by skilled artisans using time-honored techniques passed down through generations. Perfect for special occasions and everyday elegance.",
+            'shoes-bags' => "Expertly crafted African footwear combining traditional design with modern comfort. Made from high-quality materials by skilled craftspeople. A perfect blend of style and heritage.",
+            'afro-beauty' => "Premium African beauty product made with natural ingredients sourced from across the continent. Formulated to nourish and enhance your natural beauty. Free from harsh chemicals.",
+            'art' => "Authentic African art piece created by talented local artists. Each piece tells a story of African heritage, culture, and creativity. A unique addition to any collection.",
+        ];
+
+        if (str_starts_with($slug, 'textiles-')) {
+            return $descriptions['textiles'];
+        } elseif (str_starts_with($slug, 'shoes-bags-')) {
+            return $descriptions['shoes-bags'];
+        } elseif (str_starts_with($slug, 'afro-beauty-')) {
+            return $descriptions['afro-beauty'];
+        } elseif (str_starts_with($slug, 'art-')) {
+            return $descriptions['art'];
+        }
+        
+        return fake()->paragraphs(2, true);
     }
 }
