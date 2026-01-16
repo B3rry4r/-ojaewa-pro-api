@@ -46,7 +46,7 @@ class AdminDashboardSeeder extends Seeder
         }
         
         // Create pending business profiles for each category
-        $categories = ['school', 'afro_beauty'];
+        $categories = ['school', 'art', 'afro_beauty_services'];
         
         foreach ($categories as $index => $category) {
             // Get or create a user for this business
