@@ -14,8 +14,19 @@ class SellerProfileSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get first 3 users to link seller profiles to
-        $users = User::take(3)->get();
+        // Always ensure test user has approved seller profile
+        $testUser = User::where('email', 'test@ojaewa.com')->first();
+        if ($testUser && !SellerProfile::where('user_id', $testUser->id)->exists()) {
+            SellerProfile::factory()->create([
+                'user_id' => $testUser->id,
+                'registration_status' => 'approved',
+                'active' => true,
+            ]);
+            $this->command->info('✓ Created approved seller profile for test@ojaewa.com');
+        }
+
+        // Create additional approved seller profiles for other users
+        $users = User::where('email', '!=', 'test@ojaewa.com')->take(2)->get();
 
         foreach ($users as $user) {
             SellerProfile::factory()->create([
