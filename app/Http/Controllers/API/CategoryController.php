@@ -39,6 +39,7 @@ class CategoryController extends Controller
     /**
      * Get ALL categories grouped by type with full tree structure.
      * Useful for registration forms to let users select categories.
+     * Also includes form options for fabrics, styles, and tribes.
      * 
      * GET /api/categories/all
      * 
@@ -63,6 +64,29 @@ class CategoryController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $result,
+            'form_options' => [
+                'fabrics' => Product::select('fabric_type')
+                    ->whereNotNull('fabric_type')
+                    ->where('fabric_type', '!=', '')
+                    ->distinct()
+                    ->orderBy('fabric_type')
+                    ->pluck('fabric_type')
+                    ->values(),
+                'styles' => Product::select('style')
+                    ->whereNotNull('style')
+                    ->where('style', '!=', '')
+                    ->distinct()
+                    ->orderBy('style')
+                    ->pluck('style')
+                    ->values(),
+                'tribes' => Product::select('tribe')
+                    ->whereNotNull('tribe')
+                    ->where('tribe', '!=', '')
+                    ->distinct()
+                    ->orderBy('tribe')
+                    ->pluck('tribe')
+                    ->values(),
+            ],
             'meta' => [
                 'type_mapping' => [
                     'product_catalogs' => [
@@ -93,6 +117,25 @@ class CategoryController extends Controller
                     'art' => '2 levels (Leaf only)',
                     'school' => '2 levels (Leaf only)',
                     'sustainability' => '2 levels (Leaf only)',
+                ],
+                'form_option_usage' => [
+                    'textiles' => [
+                        'required' => ['fabric_type', 'style', 'tribe', 'size'],
+                        'description' => 'Textiles products require fabric, style, tribe, and size',
+                    ],
+                    'shoes_bags' => [
+                        'required' => ['size'],
+                        'optional' => ['fabric_type'],
+                        'description' => 'Shoes & Bags only require size; fabric_type is optional',
+                    ],
+                    'afro_beauty_products' => [
+                        'required' => [],
+                        'description' => 'Afro beauty products do not require apparel fields',
+                    ],
+                    'art' => [
+                        'required' => [],
+                        'description' => 'Art products do not require apparel fields',
+                    ],
                 ],
                 'types' => Category::TYPES,
             ],
