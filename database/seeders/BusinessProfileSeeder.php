@@ -42,6 +42,38 @@ class BusinessProfileSeeder extends Seeder
         $artLeafIds = Category::where('type', 'art')->pluck('id')->toArray();
         $schoolLeafIds = Category::where('type', 'school')->pluck('id')->toArray();
 
+        // Ensure the fixed test user always has an approved store
+        $testUser = User::where('email', 'test@ojaewa.com')->first();
+        if ($testUser && !BusinessProfile::where('user_id', $testUser->id)->exists()) {
+            $leafId = $afroBeautyServiceLeafIds[array_rand($afroBeautyServiceLeafIds)] ?? ($schoolLeafIds[array_rand($schoolLeafIds)] ?? null);
+            if ($leafId) {
+                BusinessProfile::create([
+                    'user_id' => $testUser->id,
+                    'category_id' => $leafId,
+                    'subcategory_id' => null,
+                    'category' => 'afro_beauty_services',
+                    'country' => 'Nigeria',
+                    'state' => 'Lagos',
+                    'city' => 'Lagos',
+                    'address' => '123 Test Business Street',
+                    'business_email' => 'teststore@ojaewa.com',
+                    'business_phone_number' => '+2348012345678',
+                    'business_name' => 'Test User Approved Store',
+                    'business_description' => 'Approved test store for test@ojaewa.com',
+                    'store_status' => 'approved',
+                    'subscription_status' => 'active',
+                    'subscription_ends_at' => now()->addDays(30),
+                    'offering_type' => 'providing_service',
+                    'service_list' => json_encode([
+                        ['name' => 'Hair Styling', 'price' => 5000],
+                        ['name' => 'Makeup', 'price' => 8000]
+                    ]),
+                    'professional_title' => 'Test Stylist',
+                ]);
+                $this->command->info('✓ Created approved store for test@ojaewa.com');
+            }
+        }
+
         // Create businesses per type with deterministic subcategories so subcategory screens differ
         foreach ($categories as $index => $category) {
             $user = $users[$index];
