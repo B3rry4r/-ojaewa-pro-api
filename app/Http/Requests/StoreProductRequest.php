@@ -56,14 +56,18 @@ class StoreProductRequest extends FormRequest
         $categoryType = $category?->type;
 
         // Textiles & Shoes/Bags require apparel attributes
-        if (in_array($categoryType, ['textiles', 'shoes_bags'])) {
+        if ($categoryType === 'textiles') {
             $rules['gender'] = 'nullable|in:male,female,unisex';
             $rules['style'] = 'required|string|max:100';
             $rules['tribe'] = 'required|string|max:100';
             $rules['size'] = 'required|string|max:50';
-            $rules['fabric_type'] = $categoryType === 'textiles'
-                ? 'required|string|max:100'
-                : 'nullable|string|max:100';
+            $rules['fabric_type'] = 'required|string|max:100';
+        } elseif ($categoryType === 'shoes_bags') {
+            $rules['gender'] = 'nullable|in:male,female,unisex';
+            $rules['style'] = 'nullable|string|max:100';
+            $rules['tribe'] = 'nullable|string|max:100';
+            $rules['size'] = 'required|string|max:50';
+            $rules['fabric_type'] = 'nullable|string|max:100';
         } else {
             // Afro Beauty products and Art products do not require apparel-specific fields
             $rules['gender'] = 'nullable|in:male,female,unisex';

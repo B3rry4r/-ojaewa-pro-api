@@ -60,8 +60,19 @@ class OrderSeeder extends Seeder
                     $orderTotal += $itemTotal;
                 }
                 
-                // Update order total
-                $order->update(['total_price' => $orderTotal]);
+                // Update order totals and shipping details
+                $deliveryFee = 2000;
+                $order->update([
+                    'subtotal' => $orderTotal,
+                    'delivery_fee' => $deliveryFee,
+                    'total_price' => $orderTotal + $deliveryFee,
+                    'shipping_name' => $user->firstname . ' ' . $user->lastname,
+                    'shipping_phone' => $user->phone ?? fake()->phoneNumber(),
+                    'shipping_address' => fake()->streetAddress(),
+                    'shipping_city' => fake()->city(),
+                    'shipping_state' => fake()->state(),
+                    'shipping_country' => 'Nigeria',
+                ]);
             }
             
             $this->command->info("Created 2 orders with items for user {$user->firstname} {$user->lastname}");

@@ -26,6 +26,14 @@ class StoreOrderRequest extends FormRequest
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id,status,approved',
             'items.*.quantity' => 'required|integer|min:1',
+
+            // Shipping fields (optional but recommended)
+            'shipping_name' => 'nullable|string|max:255',
+            'shipping_phone' => 'nullable|string|max:50',
+            'shipping_address' => 'nullable|string|max:255',
+            'shipping_city' => 'nullable|string|max:100',
+            'shipping_state' => 'nullable|string|max:100',
+            'shipping_country' => 'nullable|string|max:100',
         ];
     }
 

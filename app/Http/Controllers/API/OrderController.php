@@ -69,14 +69,24 @@ class OrderController extends Controller
             DB::beginTransaction();
             
             $user = Auth::user();
-            $items = $request->validated()['items'];
-            $totalPrice = 0;
-            
+            $validated = $request->validated();
+            $items = $validated['items'];
+            $subtotal = 0;
+            $deliveryFee = 2000; // Flat fee (configurable later)
+
             // Create the order
             $order = Order::create([
                 'user_id' => $user->id,
-                'total_price' => 0, // We'll update this after calculating item totals
-                'status' => 'pending', // Default status
+                'total_price' => 0, // computed after items
+                'subtotal' => 0,
+                'delivery_fee' => $deliveryFee,
+                'shipping_name' => $validated['shipping_name'] ?? null,
+                'shipping_phone' => $validated['shipping_phone'] ?? null,
+                'shipping_address' => $validated['shipping_address'] ?? null,
+                'shipping_city' => $validated['shipping_city'] ?? null,
+                'shipping_state' => $validated['shipping_state'] ?? null,
+                'shipping_country' => $validated['shipping_country'] ?? null,
+                'status' => 'pending',
             ]);
             
             // Create order items and calculate total price
@@ -85,7 +95,7 @@ class OrderController extends Controller
                 $quantity = $item['quantity'];
                 $unitPrice = $product->price;
                 $itemTotal = $quantity * $unitPrice;
-                
+
                 // Create the order item
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -93,12 +103,17 @@ class OrderController extends Controller
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice
                 ]);
-                
-                $totalPrice += $itemTotal;
+
+                $subtotal += $itemTotal;
             }
             
-            // Update the order with the calculated total price
-            $order->update(['total_price' => $totalPrice]);
+            // Update order totals
+            $totalPrice = $subtotal + $deliveryFee;
+            $order->update([
+                'subtotal' => $subtotal,
+                'delivery_fee' => $deliveryFee,
+                'total_price' => $totalPrice,
+            ]);
             
             // Commit the transaction
             DB::commit();
@@ -143,10 +158,34 @@ class OrderController extends Controller
         $order = Order::with(['orderItems.product', 'reviews'])
             ->where('user_id', $user->id)
             ->findOrFail($id);
-        
-        // No need to manually set avg_rating as it's already provided by the accessor
-        
-        return response()->json($order);
+
+        $subtotal = $order->subtotal ?? $order->orderItems->sum(fn($item) => $item->unit_price * $item->quantity);
+        $deliveryFee = $order->delivery_fee ?? 2000;
+
+        $shippingAddress = trim(implode(', ', array_filter([
+            $order->shipping_address,
+            $order->shipping_city,
+            $order->shipping_state,
+            $order->shipping_country,
+        ])));
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'id' => $order->id,
+                'order_number' => 'ORD-' . str_pad((string)$order->id, 6, '0', STR_PAD_LEFT),
+                'status' => $order->status,
+                'created_at' => $order->created_at,
+                'subtotal' => $subtotal,
+                'delivery_fee' => $deliveryFee,
+                'total_price' => $order->total_price,
+                'tracking_number' => $order->tracking_number,
+                'delivered_at' => $order->delivered_at,
+                'shipping_address' => $shippingAddress,
+                'order_items' => $order->orderItems,
+                'avg_rating' => $order->avg_rating,
+            ],
+        ]);
     }
 
     /**
@@ -211,53 +250,43 @@ class OrderController extends Controller
         
         // Define tracking stages based on status
         $trackingStages = [
-            'pending' => [
-                'title' => 'Order Placed',
-                'description' => 'Your order has been placed and is awaiting processing',
+            [
+                'status' => 'Order Placed',
+                'timestamp' => $order->created_at?->toISOString(),
                 'completed' => true,
-                'date' => $order->created_at->format('M d, Y H:i')
             ],
-            'processing' => [
-                'title' => 'Processing',
-                'description' => 'Your order is being prepared',
+            [
+                'status' => 'Processing',
+                'timestamp' => in_array($order->status, ['processing', 'shipped', 'delivered']) ? $order->updated_at?->toISOString() : null,
                 'completed' => in_array($order->status, ['processing', 'shipped', 'delivered']),
-                'date' => $order->status === 'processing' ? 'Current stage' : null
             ],
-            'shipped' => [
-                'title' => 'Shipped',
-                'description' => $order->tracking_number ? "Tracking: {$order->tracking_number}" : 'Your order has been shipped',
+            [
+                'status' => 'Shipped',
+                'timestamp' => $order->status === 'shipped' || $order->status === 'delivered' ? $order->updated_at?->toISOString() : null,
                 'completed' => in_array($order->status, ['shipped', 'delivered']),
-                'date' => $order->status === 'shipped' ? 'Current stage' : null
             ],
-            'delivered' => [
-                'title' => 'Delivered',
-                'description' => 'Your order has been delivered',
+            [
+                'status' => 'Delivered',
+                'timestamp' => $order->delivered_at?->toISOString(),
                 'completed' => $order->status === 'delivered',
-                'date' => $order->delivered_at ? $order->delivered_at->format('M d, Y H:i') : null
-            ]
+            ],
         ];
-        
-        // Handle cancelled orders
+
         if ($order->status === 'cancelled') {
-            $trackingStages = [
-                'pending' => $trackingStages['pending'],
-                'cancelled' => [
-                    'title' => 'Cancelled',
-                    'description' => $order->cancellation_reason ?: 'Order was cancelled',
-                    'completed' => true,
-                    'date' => $order->updated_at->format('M d, Y H:i')
-                ]
+            $trackingStages[] = [
+                'status' => 'Cancelled',
+                'timestamp' => $order->updated_at?->toISOString(),
+                'completed' => true,
+                'reason' => $order->cancellation_reason,
             ];
         }
         
         return response()->json([
             'status' => 'success',
             'data' => [
-                'order_id' => $order->id,
-                'current_status' => $order->status,
-                'tracking_number' => $order->tracking_number,
-                'stages' => array_values($trackingStages),
                 'estimated_delivery' => $this->calculateEstimatedDelivery($order),
+                'tracking_number' => $order->tracking_number,
+                'stages' => $trackingStages,
             ]
         ]);
     }
@@ -279,7 +308,7 @@ class OrderController extends Controller
         $estimatedDays = 5; // Average delivery time
         $deliveryDate = $order->created_at->addDays($estimatedDays);
         
-        return $deliveryDate->format('M d, Y');
+        return $deliveryDate->format('Y-m-d');
     }
 
     /**

@@ -20,6 +20,14 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'total_price',
+        'subtotal',
+        'delivery_fee',
+        'shipping_name',
+        'shipping_phone',
+        'shipping_address',
+        'shipping_city',
+        'shipping_state',
+        'shipping_country',
         'status',
         'tracking_number',
         'cancellation_reason',
@@ -35,6 +43,8 @@ class Order extends Model
      */
     protected $casts = [
         'total_price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
         'delivered_at' => 'datetime',
         'payment_data' => 'array',
     ];

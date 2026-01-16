@@ -191,11 +191,11 @@ class ProductController extends Controller
             $query->where('style', 'like', '%' . $request->style . '%');
         }
         
-        if ($request->has('price_min')) {
+        if ($request->filled('price_min')) {
             $query->where('price', '>=', $request->price_min);
         }
         
-        if ($request->has('price_max')) {
+        if ($request->filled('price_max')) {
             $query->where('price', '<=', $request->price_max);
         }
         

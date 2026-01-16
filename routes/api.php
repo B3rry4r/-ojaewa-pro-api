@@ -15,6 +15,7 @@ use App\Http\Controllers\API\AddressController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\SchoolController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\SellerOrderController;
 use App\Http\Controllers\API\Admin\SchoolRegistrationController;
 use App\Http\Controllers\API\NotificationPreferenceController;
 use App\Http\Controllers\API\SubscriptionController;
@@ -212,6 +213,13 @@ Route::middleware("auth:sanctum")->group(function () {
             "tracking",
         ]);
         Route::post("/{id}/cancel", [APIOrderController::class, "cancel"]);
+    });
+
+    // SELLER ORDERS
+    Route::prefix("seller/orders")->group(function () {
+        Route::get("/", [SellerOrderController::class, "index"]);
+        Route::get("/{orderId}", [SellerOrderController::class, "show"]);
+        Route::patch("/{orderId}/status", [SellerOrderController::class, "updateStatus"]);
     });
 
     Route::prefix("reviews")->group(function () {
