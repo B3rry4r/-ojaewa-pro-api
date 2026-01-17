@@ -197,11 +197,10 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::delete("/{id}", [AddressController::class, "destroy"]);
     });
 
-    // MARKET OPERATIONS
+    // MARKET OPERATIONS (Authenticated - for sellers managing their products)
     Route::prefix("products")->group(function () {
-        Route::get("/", [APIProductController::class, "index"]);
+        Route::get("/", [APIProductController::class, "index"]); // Seller's own products
         Route::post("/", [APIProductController::class, "store"]);
-        Route::get("/search", [APIProductController::class, "search"]);
         Route::get("/suggestions", [
             APIProductController::class,
             "suggestions",
