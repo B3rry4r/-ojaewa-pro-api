@@ -401,6 +401,58 @@ class ProductController extends Controller
     }
 
     /**
+     * Upload an image for a product.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function upload(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+        $product = Product::findOrFail($id);
+        
+        // Check if user has a seller profile
+        if (!$user->sellerProfile) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You must have a seller profile to upload product images'
+            ], 403);
+        }
+        
+        // Check if product belongs to authenticated user's seller profile
+        if ($product->seller_profile_id !== $user->sellerProfile->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized to upload images for this product'
+            ], 403);
+        }
+        
+        $request->validate([
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120', // Max 5MB, only images
+            'file_type' => 'sometimes|string|in:image,product_image',
+        ]);
+        
+        $file = $request->file('file');
+        
+        // Store the file
+        $path = $file->store('products/' . $product->id, 'public');
+        $imageUrl = 'storage/' . $path;
+        
+        // Update the product's image field
+        $product->update(['image' => $imageUrl]);
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Image uploaded successfully',
+            'data' => [
+                'image_url' => $imageUrl,
+                'product_id' => $product->id
+            ]
+        ]);
+    }
+
+    /**
      * Get product filters metadata (public)
      */
     public function filters(): JsonResponse

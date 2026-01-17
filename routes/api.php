@@ -202,6 +202,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get("/{product}", [APIProductController::class, "show"]);
         Route::put("/{product}", [APIProductController::class, "update"]);
         Route::delete("/{product}", [APIProductController::class, "destroy"]);
+        Route::post("/{product}/upload", [APIProductController::class, "upload"]);
     });
 
     Route::prefix("orders")->group(function () {
