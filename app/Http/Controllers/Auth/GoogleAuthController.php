@@ -7,6 +7,7 @@ use App\Models\User;
 use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -20,9 +21,29 @@ class GoogleAuthController extends Controller
     {
         $request->validate(['token' => 'required|string']);
 
-        $client = app(Google_Client::class);
-        $client->setClientId(env('GOOGLE_CLIENT_ID'));
-        $payload = $client->verifyIdToken($request->token);
+        // Check if Google Client ID is configured
+        $googleClientId = config('services.google.client_id');
+        
+        if (empty($googleClientId)) {
+            Log::error('Google OAuth: GOOGLE_CLIENT_ID not configured');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Google authentication is not configured on the server.',
+            ], 503);
+        }
+
+        try {
+            $client = new Google_Client();
+            $client->setClientId($googleClientId);
+            $payload = $client->verifyIdToken($request->token);
+        } catch (\Exception $e) {
+            Log::error('Google OAuth verification failed: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to verify Google token.',
+                'debug' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
 
         if (! $payload) {
             throw ValidationException::withMessages([
@@ -57,6 +78,7 @@ class GoogleAuthController extends Controller
         $token = $user->createToken('auth')->plainTextToken;
 
         return response()->json([
+            'status' => 'success',
             'token'      => $token,
             'user'       => $user,
             'need_phone' => $needPhone,
