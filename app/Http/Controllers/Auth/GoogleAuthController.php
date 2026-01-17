@@ -37,11 +37,17 @@ class GoogleAuthController extends Controller
             $client->setClientId($googleClientId);
             $payload = $client->verifyIdToken($request->token);
         } catch (\Exception $e) {
-            Log::error('Google OAuth verification failed: ' . $e->getMessage());
+            Log::error('Google OAuth verification failed: ' . $e->getMessage(), [
+                'exception' => $e,
+                'client_id_set' => !empty($googleClientId),
+                'client_id_length' => strlen($googleClientId ?? ''),
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to verify Google token.',
-                'debug' => config('app.debug') ? $e->getMessage() : null,
+                'error_type' => get_class($e),
+                'error_hint' => str_contains($e->getMessage(), 'cURL') ? 'Network/SSL issue' : 
+                               (str_contains($e->getMessage(), 'client') ? 'Client ID issue' : 'Token verification issue'),
             ], 500);
         }
 
