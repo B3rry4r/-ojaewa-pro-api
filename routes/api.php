@@ -108,6 +108,12 @@ Route::post("/webhook/paystack/school", [
     "handlePaymentWebhook",
 ]);
 
+// Paystack callback URL - redirects to mobile app after payment
+Route::get("/payment/callback", [
+    PaymentController::class,
+    "handleCallback",
+]);
+
 // ============================================
 // PUBLIC BUSINESS PROFILES
 // ============================================

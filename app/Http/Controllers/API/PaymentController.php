@@ -49,6 +49,10 @@ class PaymentController extends Controller
         $reference = $this->paystackService->generateReference("ORDER");
 
         // Prepare payment data
+        // Use the API callback URL - Paystack will redirect here after payment
+        // This endpoint will then redirect to the mobile app via deep link
+        $callbackUrl = config('app.url') . '/api/payment/callback';
+        
         $paymentData = [
             "email" => $user->email,
             "amount" => $this->paystackService->convertToKobo(
@@ -56,7 +60,7 @@ class PaymentController extends Controller
             ),
             "reference" => $reference,
             "currency" => "NGN",
-            "callback_url" => "ojaewa://payment/callback",
+            "callback_url" => $callbackUrl,
             "metadata" => [
                 "order_id" => $order->id,
                 "user_id" => $user->id,
@@ -163,6 +167,50 @@ class PaymentController extends Controller
             ],
             400,
         );
+    }
+
+    /**
+     * Handle Paystack callback redirect (after user completes payment on Paystack)
+     * This endpoint receives the redirect from Paystack and redirects to the mobile app
+     */
+    public function handleCallback(Request $request)
+    {
+        $reference = $request->query('reference') ?? $request->query('trxref');
+        
+        if (!$reference) {
+            // Redirect to app with error
+            return redirect('ojaewa://payment/callback?status=error&message=No reference provided');
+        }
+
+        // Verify the payment
+        $result = $this->paystackService->verifyPayment($reference);
+        
+        if ($result['status'] === 'success') {
+            $paymentData = $result['data'];
+            
+            // Find the order using reference
+            $order = Order::where('payment_reference', $reference)->first();
+            
+            if ($order && $paymentData['status'] === 'success') {
+                // Update order status if not already updated
+                if ($order->status !== 'paid') {
+                    $order->update([
+                        'status' => 'paid',
+                        'payment_data' => json_encode($paymentData),
+                    ]);
+                }
+                
+                // Redirect to mobile app with success
+                return redirect("ojaewa://payment/callback?status=success&reference={$reference}&order_id={$order->id}");
+            }
+            
+            // Payment not successful
+            $status = $paymentData['status'] ?? 'failed';
+            return redirect("ojaewa://payment/callback?status={$status}&reference={$reference}");
+        }
+        
+        // Verification failed
+        return redirect("ojaewa://payment/callback?status=error&message=Payment verification failed&reference={$reference}");
     }
 
     /**
