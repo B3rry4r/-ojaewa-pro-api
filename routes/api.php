@@ -136,6 +136,7 @@ Route::prefix('business')->group(function () {
 // ============================================
 Route::prefix('products')->group(function () {
     Route::get('/browse', [APIProductController::class, 'browse']);
+    Route::get('/search', [APIProductController::class, 'search']);
     Route::get('/filters', [APIProductController::class, 'filters']);
     Route::get('/public/{id}', [APIProductController::class, 'publicShow']);
 });
