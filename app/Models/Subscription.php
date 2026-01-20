@@ -22,6 +22,20 @@ class Subscription extends Model
         'next_billing_date',
         'payment_method',
         'features',
+        'product_id',
+        'tier',
+        'platform',
+        'store_transaction_id',
+        'store_product_id',
+        'purchase_token',
+        'receipt_data',
+        'cancelled_at',
+        'is_auto_renewing',
+        'will_renew',
+        'renewal_price',
+        'renewal_currency',
+        'environment',
+        'raw_data',
     ];
 
     protected $casts = [
@@ -30,6 +44,11 @@ class Subscription extends Model
         'next_billing_date' => 'datetime',
         'features' => 'array',
         'price' => 'decimal:2',
+        'cancelled_at' => 'datetime',
+        'is_auto_renewing' => 'boolean',
+        'will_renew' => 'boolean',
+        'renewal_price' => 'decimal:2',
+        'raw_data' => 'array',
     ];
 
     /**

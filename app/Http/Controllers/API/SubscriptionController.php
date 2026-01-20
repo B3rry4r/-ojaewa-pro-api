@@ -4,12 +4,127 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessProfile;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
 {
+    /**
+     * Store subscription (verification handled later)
+     * POST /api/subscriptions/verify
+     */
+    public function verify(Request $request): JsonResponse
+    {
+        $request->validate([
+            'platform' => 'required|in:ios,android',
+            'product_id' => 'required|string',
+            'transaction_id' => 'required|string',
+            'receipt_data' => 'nullable|string',
+            'environment' => 'nullable|in:sandbox,production',
+        ]);
+
+        $user = Auth::user();
+
+        $productId = $request->product_id;
+        $tier = $productId === 'ojaewa_pro' ? 'ojaewa_pro' : 'free';
+
+        $startsAt = now();
+        $expiresAt = $productId === 'ojaewa_pro' ? now()->addYear() : now();
+
+        $subscription = Subscription::updateOrCreate(
+            [
+                'store_transaction_id' => $request->transaction_id,
+                'platform' => $request->platform,
+            ],
+            [
+                'user_id' => $user->id,
+                'product_id' => $productId,
+                'tier' => $tier,
+                'store_product_id' => $productId,
+                'receipt_data' => $request->receipt_data,
+                'status' => 'active',
+                'starts_at' => $startsAt,
+                'expires_at' => $expiresAt,
+                'is_auto_renewing' => true,
+                'will_renew' => true,
+                'renewal_price' => null,
+                'renewal_currency' => 'NGN',
+                'environment' => $request->environment ?? 'production',
+                'raw_data' => [
+                    'platform' => $request->platform,
+                    'product_id' => $productId,
+                    'transaction_id' => $request->transaction_id,
+                ],
+                'plan_name' => $tier,
+                'price' => 0,
+                'payment_method' => $request->platform,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Subscription verified and activated',
+            'data' => [
+                'subscription' => [
+                    'id' => $subscription->id,
+                    'product_id' => $subscription->product_id,
+                    'tier' => $subscription->tier,
+                    'status' => $subscription->status,
+                    'starts_at' => $subscription->starts_at,
+                    'expires_at' => $subscription->expires_at,
+                    'is_auto_renewing' => $subscription->is_auto_renewing,
+                    'platform' => $subscription->platform,
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Get current subscription status
+     * GET /api/subscriptions/status
+     */
+    public function status(): JsonResponse
+    {
+        $user = Auth::user();
+        $subscription = Subscription::where('user_id', $user->id)
+            ->whereNotNull('product_id')
+            ->orderByDesc('expires_at')
+            ->first();
+
+        if (!$subscription || !$subscription->isActive()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'has_subscription' => false,
+                    'subscription' => null,
+                ],
+            ]);
+        }
+
+        $daysRemaining = $subscription->daysUntilExpiration();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'has_subscription' => true,
+                'subscription' => [
+                    'id' => $subscription->id,
+                    'product_id' => $subscription->product_id,
+                    'tier' => $subscription->tier,
+                    'status' => $subscription->status,
+                    'platform' => $subscription->platform,
+                    'starts_at' => $subscription->starts_at,
+                    'expires_at' => $subscription->expires_at,
+                    'days_remaining' => $daysRemaining,
+                    'is_auto_renewing' => $subscription->is_auto_renewing,
+                    'will_renew' => $subscription->will_renew,
+                ],
+            ],
+        ]);
+    }
+
     /**
      * Manage business subscription
      */
@@ -84,35 +199,4 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    /**
-     * Get subscription features based on type
-     */
-    private function getSubscriptionFeatures(string $subscriptionType): array
-    {
-        return match ($subscriptionType) {
-            'basic' => [
-                'max_products' => 50,
-                'max_photos_per_product' => 5,
-                'analytics_access' => false,
-                'priority_support' => false,
-                'advanced_promotion' => false
-            ],
-            'premium' => [
-                'max_products' => 200,
-                'max_photos_per_product' => 10,
-                'analytics_access' => true,
-                'priority_support' => true,
-                'advanced_promotion' => true
-            ],
-            'enterprise' => [
-                'max_products' => 1000,
-                'max_photos_per_product' => 20,
-                'analytics_access' => true,
-                'priority_support' => true,
-                'advanced_promotion' => true,
-                'custom_branding' => true,
-                'api_access' => true
-            ]
-        };
-    }
 }

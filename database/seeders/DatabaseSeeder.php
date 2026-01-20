@@ -111,6 +111,9 @@ class DatabaseSeeder extends Seeder
             
             // Sustainability
             SustainabilityInitiativeSeeder::class,
+
+            // Seed IAP subscription for test user
+            SubscriptionSeeder::class,
         ]);
         
         $this->command->info('');

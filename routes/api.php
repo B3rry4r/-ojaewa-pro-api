@@ -295,6 +295,10 @@ Route::middleware("auth:sanctum")->group(function () {
         "uploadFile",
     ]);
 
+    // SUBSCRIPTIONS (IAP)
+    Route::post("/subscriptions/verify", [SubscriptionController::class, "verify"]);
+    Route::get("/subscriptions/status", [SubscriptionController::class, "status"]);
+
     // BUSINESS PROFILE MANAGEMENT (authenticated user's own profiles)
     Route::prefix("business")->group(function () {
         Route::get("/", [BusinessProfileController::class, "index"]);
