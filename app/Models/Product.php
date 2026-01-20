@@ -52,6 +52,20 @@ class Product extends Model
     protected $appends = ['avg_rating'];
 
     /**
+     * Apply OjaEwa platform markup (25%) to seller price.
+     */
+    public function setPriceAttribute($value): void
+    {
+        if ($value === null) {
+            $this->attributes['price'] = null;
+            return;
+        }
+
+        $numericValue = is_numeric($value) ? (float) $value : 0.0;
+        $this->attributes['price'] = round($numericValue * 1.25, 2);
+    }
+
+    /**
      * Get the category for this product.
      */
     public function category(): BelongsTo
