@@ -161,6 +161,79 @@ class ProductSeeder extends Seeder
             }
         }
 
+        // Create products for new Kids + Afro Beauty group leaves
+        $kidsLeafCategories = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty_products'])
+            ->whereHas('parent', fn($q) => $q->where('name', 'Kids'))
+            ->get();
+
+        foreach ($kidsLeafCategories as $category) {
+            $seller = $sellerProfiles[$sellerIndex % $sellerProfiles->count()];
+            $sellerIndex++;
+
+            $leafName = strtolower($category->name);
+            $gender = str_contains($leafName, 'female') ? 'female' : (str_contains($leafName, 'male') ? 'male' : 'unisex');
+
+            $productData = [
+                'seller_profile_id' => $seller->id,
+                'category_id' => $category->id,
+                'name' => ProductFactory::getNameForCategory($category->slug),
+                'image' => ProductFactory::getImageForCategory($category->slug),
+                'gender' => $gender,
+                'status' => 'approved',
+                'price' => fake()->randomFloat(2, 3000, 60000),
+                'description' => $this->getDescriptionForCategory($category->slug),
+                'processing_time_type' => fake()->randomElement(['normal', 'quick_quick']),
+                'processing_days' => fake()->numberBetween(2, 14),
+            ];
+
+            if ($category->type === 'textiles') {
+                $productData['style'] = fake()->randomElement($africanStyles);
+                $productData['tribe'] = fake()->randomElement($africanTribes);
+                $productData['fabric_type'] = fake()->randomElement($fabrics);
+                $productData['size'] = fake()->randomElement($sizes);
+            } elseif ($category->type === 'shoes_bags') {
+                $productData['size'] = fake()->randomElement($shoeSizes);
+                $productData['fabric_type'] = fake()->optional(0.3)->randomElement($fabrics);
+                $productData['style'] = null;
+                $productData['tribe'] = null;
+            } else {
+                $productData['size'] = null;
+                $productData['style'] = null;
+                $productData['tribe'] = null;
+                $productData['fabric_type'] = null;
+            }
+
+            Product::create($productData);
+            $totalCreated++;
+        }
+
+        $afroBeautyGroupLeaves = Category::where('type', 'afro_beauty_products')
+            ->whereHas('parent', fn($q) => $q->whereIn('name', ['Women', 'Men']))
+            ->get();
+
+        foreach ($afroBeautyGroupLeaves as $category) {
+            $seller = $sellerProfiles[$sellerIndex % $sellerProfiles->count()];
+            $sellerIndex++;
+
+            Product::create([
+                'seller_profile_id' => $seller->id,
+                'category_id' => $category->id,
+                'name' => ProductFactory::getNameForCategory($category->slug),
+                'image' => ProductFactory::getImageForCategory($category->slug),
+                'gender' => strtolower($category->parent?->name) === 'men' ? 'male' : 'female',
+                'status' => 'approved',
+                'price' => fake()->randomFloat(2, 3000, 60000),
+                'description' => $this->getDescriptionForCategory($category->slug),
+                'processing_time_type' => fake()->randomElement(['normal', 'quick_quick']),
+                'processing_days' => fake()->numberBetween(2, 14),
+                'size' => null,
+                'style' => null,
+                'tribe' => null,
+                'fabric_type' => null,
+            ]);
+            $totalCreated++;
+        }
+
         // Also create some pending and rejected products for testing
         $testSeller = $sellerProfiles->first();
         $firstCategory = $categoriesBySlug->first();
