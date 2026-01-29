@@ -20,19 +20,16 @@ use Illuminate\Validation\Rule;
  * PRODUCT CATALOGS (return Products):
  * - textiles (3 levels: Group → Leaf)
  * - shoes_bags (3 levels: Group → Leaf)
- * - afro_beauty_products (2 levels: Leaf only)
+ * - afro_beauty_products (3 levels: Group → Leaf)
  * 
  * BUSINESS DIRECTORIES (return BusinessProfiles) - 2 levels:
- * - art (2 levels: Leaf only)
  * - school (2 levels: Leaf only)
- * - afro_beauty_services (2 levels: Leaf only)
  * 
  * INITIATIVES (return SustainabilityInitiatives) - 2 levels:
  * - sustainability (2 levels: Leaf only)
  * 
- * AFRO BEAUTY: Split into two types for two tabs
- * - afro_beauty_products → Products (Tab 1)
- * - afro_beauty_services → Businesses (Tab 2)
+ * AFRO BEAUTY: Single products tree (no services)
+ * - afro_beauty_products → Products
  */
 class CategoryController extends Controller
 {
@@ -107,13 +104,11 @@ class CategoryController extends Controller
                 ],
                 'afro_beauty_tabs' => [
                     'tab_1_products' => 'afro_beauty_products',
-                    'tab_2_services' => 'afro_beauty_services',
                 ],
                 'depth_rules' => [
                     'textiles' => '3 levels (Group → Leaf)',
                     'shoes_bags' => '3 levels (Group → Leaf)',
-                    'afro_beauty_products' => '2 levels (Leaf only)',
-                    'afro_beauty_services' => '2 levels (Leaf only)',
+                    'afro_beauty_products' => '3 levels (Group → Leaf)',
                     'art' => '2 levels (Leaf only)',
                     'school' => '2 levels (Leaf only)',
                     'sustainability' => '2 levels (Leaf only)',
@@ -283,7 +278,7 @@ class CategoryController extends Controller
                 ->paginate($perPage);
         }
         
-        // BUSINESS TYPES: art, school, afro_beauty_services
+        // BUSINESS TYPES: school
         if ($category->returnsBusinesses()) {
             return BusinessProfile::where(function ($query) use ($categoryIds) {
                     $query->whereIn('category_id', $categoryIds)

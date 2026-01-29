@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
  * Business profiles are registered under these category types:
  * - school → Educational institutions
  * - art → Artists, galleries, studios
- * - afro_beauty_services → Beauty service providers
+ * - (afro beauty services removed for now)
  * 
  * All business directory categories have 2 levels (leaf categories only).
  */
@@ -42,7 +42,7 @@ class StoreBusinessProfileRequest extends FormRequest
             ],
             'subcategory_id' => 'nullable|exists:categories,id',
             // Legacy category field for backward compatibility
-            'category' => ['required', 'string', Rule::in(['school', 'afro_beauty_services'])],
+            'category' => ['required', 'string', Rule::in(['school'])],
             'country' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'city' => 'required|string|max:100',
@@ -105,7 +105,7 @@ class StoreBusinessProfileRequest extends FormRequest
         return [
             'category_id.required' => 'Please select a business category',
             'category_id.exists' => 'The selected category is invalid or not a business category',
-            'category.in' => 'Category must be one of: school, art, afro_beauty_services',
+            'category.in' => 'Category must be: school',
         ];
     }
 }

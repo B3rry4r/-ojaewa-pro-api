@@ -18,11 +18,10 @@ use Illuminate\Database\Eloquent\Builder;
  * PRODUCT CATALOGS (return Products):
  * - textiles (3 levels: Group → Leaf)
  * - shoes_bags (3 levels: Group → Leaf)
- * - afro_beauty_products (2 levels: Leaf only)
+ * - afro_beauty_products (3 levels: Group → Leaf)
  * 
  * BUSINESS DIRECTORIES (return BusinessProfiles) - 2 levels:
  * - school (2 levels: Leaf only)
- * - afro_beauty_services (2 levels: Leaf only)
  * 
  * INITIATIVES (return SustainabilityInitiatives) - 2 levels:
  * - sustainability (2 levels: Leaf only)
@@ -38,7 +37,6 @@ class Category extends Model
         'textiles',
         'shoes_bags', 
         'afro_beauty_products',
-        'afro_beauty_services',
         'art',
         'school',
         'sustainability',
@@ -59,7 +57,6 @@ class Category extends Model
      */
     public const BUSINESS_TYPES = [
         'school',
-        'afro_beauty_services',
     ];
     
     /**
@@ -132,12 +129,7 @@ class Category extends Model
     }
     
     /**
-     * Scope a query to only include afro_beauty_services categories.
-     */
-    public function scopeAfroBeautyServices(Builder $query): Builder
-    {
-        return $query->where('type', 'afro_beauty_services');
-    }
+    // Afro beauty services removed (no services category)
     
     /**
      * Scope a query to only include art categories.
@@ -188,7 +180,7 @@ class Category extends Model
     }
     
     /**
-     * Scope for business directory types (art, school, afro_beauty_services)
+     * Scope for business directory types (school)
      */
     public function scopeBusinessTypes(Builder $query): Builder
     {

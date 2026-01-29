@@ -14,23 +14,6 @@ class BusinessProfileSeeder extends Seeder
      */
     private array $businessImages = [
         'afro_beauty_services' => [
-            'Hair Care & Styling Services' => [
-                'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1595475884562-073c30d45670?w=400&h=400&fit=crop',
-            ],
-            'Skin Care & Aesthetics Services' => [
-                'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400&h=400&fit=crop',
-            ],
-            'Makeup Artistry Services' => [
-                'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=400&h=400&fit=crop',
-            ],
-            'Barbering Services' => [
-                'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&h=400&fit=crop',
-            ],
             'default' => [
                 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop',
             ],
@@ -188,94 +171,50 @@ class BusinessProfileSeeder extends Seeder
         }
 
         // Get category IDs
-        $beautyCategories = Category::where('type', 'afro_beauty_services')->get()->keyBy('name');
         $schoolCategories = Category::where('type', 'school')->get()->keyBy('name');
 
         $totalCreated = 0;
         $userIndex = 0;
 
-        // Create test user's business first
+        // Skip afro beauty services for now
+
+        // Create schools
         $testUser = User::where('email', 'test@ojaewa.com')->first();
         if ($testUser && !BusinessProfile::where('user_id', $testUser->id)->exists()) {
-            $hairCategory = $beautyCategories['Hair Care & Styling Services'] ?? $beautyCategories->first();
-            $business = $this->beautyBusinesses[0];
-            
-            BusinessProfile::create([
-                'user_id' => $testUser->id,
-                'category_id' => $hairCategory?->id,
-                'category' => 'afro_beauty_services',
-                'country' => 'Nigeria',
-                'state' => 'Lagos State',
-                'city' => 'Lagos',
-                'address' => '25 Admiralty Way, Lekki Phase 1',
-                'business_email' => 'contact@afroglam.com',
-                'business_phone_number' => '+2348012345678',
-                'business_name' => $business['name'],
-                'business_description' => $business['description'],
-                'store_status' => 'approved',
-                'subscription_status' => 'active',
-                'subscription_ends_at' => now()->addDays(60),
-                'offering_type' => 'providing_service',
-                'service_list' => $business['services'],
-                'professional_title' => $business['title'],
-                'business_logo' => $this->getImageForCategory('afro_beauty_services', 'Hair Care & Styling Services'),
-                'instagram' => '@afroglam_beauty',
-                'facebook' => 'AfroGlamBeautyStudio',
-            ]);
-            $totalCreated++;
-            $this->command->info("✓ Created beauty business for test@ojaewa.com");
-        }
-
-        // Create remaining beauty businesses
-        foreach (array_slice($this->beautyBusinesses, 1) as $index => $business) {
-            $user = $users[$userIndex % $users->count()];
-            $userIndex++;
-            
-            // Skip test user
-            if ($user->email === 'test@ojaewa.com') {
-                $user = $users[$userIndex % $users->count()];
-                $userIndex++;
+            $schoolCategory = $schoolCategories->first();
+            if ($schoolCategory) {
+                BusinessProfile::create([
+                    'user_id' => $testUser->id,
+                    'category_id' => $schoolCategory->id,
+                    'category' => 'school',
+                    'country' => 'Nigeria',
+                    'state' => 'Lagos State',
+                    'city' => 'Lagos',
+                    'address' => '25 Admiralty Way, Lekki Phase 1',
+                    'business_email' => 'school@ojaewa.com',
+                    'business_phone_number' => '+2348012345678',
+                    'business_name' => 'OjaEwa School Test',
+                    'business_description' => 'Seeded school business profile',
+                    'store_status' => 'approved',
+                    'subscription_status' => 'active',
+                    'subscription_ends_at' => now()->addDays(60),
+                    'school_type' => 'fashion',
+                    'school_biography' => 'Seeded school biography',
+                    'classes_offered' => json_encode([
+                        ['name' => 'Beginner Class', 'price' => 15000, 'duration' => '4 weeks'],
+                    ]),
+                    'business_logo' => $this->getImageForCategory('school', 'Fashion'),
+                ]);
+                $totalCreated++;
+                $this->command->info("✓ Created school business for test@ojaewa.com");
             }
-
-            $categoryName = match($index) {
-                0 => 'Skin Care & Aesthetics Services',
-                1 => 'Makeup Artistry Services',
-                2 => 'Barbering Services',
-                default => 'Wellness & Therapeutic Services',
-            };
-            
-            $category = $beautyCategories[$categoryName] ?? $beautyCategories->first();
-
-            BusinessProfile::create([
-                'user_id' => $user->id,
-                'category_id' => $category?->id,
-                'category' => 'afro_beauty_services',
-                'country' => 'Nigeria',
-                'state' => fake()->randomElement(['Lagos State', 'Abuja', 'Rivers State', 'Oyo State']),
-                'city' => fake()->randomElement(['Lagos', 'Abuja', 'Port Harcourt', 'Ibadan']),
-                'address' => fake()->streetAddress(),
-                'business_email' => fake()->companyEmail(),
-                'business_phone_number' => '+234' . rand(8010000000, 9099999999),
-                'business_name' => $business['name'],
-                'business_description' => $business['description'],
-                'store_status' => 'approved',
-                'subscription_status' => 'active',
-                'subscription_ends_at' => now()->addDays(rand(30, 90)),
-                'offering_type' => 'providing_service',
-                'service_list' => $business['services'],
-                'professional_title' => $business['title'],
-                'business_logo' => $this->getImageForCategory('afro_beauty_services', $categoryName),
-                'instagram' => '@' . strtolower(str_replace(' ', '_', $business['name'])),
-                'facebook' => str_replace(' ', '', $business['name']),
-            ]);
-            $totalCreated++;
         }
 
         // Create schools
         foreach ($this->schools as $school) {
             $user = $users[$userIndex % $users->count()];
             $userIndex++;
-            
+
             // Skip test user
             if ($user->email === 'test@ojaewa.com') {
                 $user = $users[$userIndex % $users->count()];

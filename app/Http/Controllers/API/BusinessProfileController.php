@@ -389,7 +389,8 @@ class BusinessProfileController extends Controller
             'category_trees' => [
                 'school' => \App\Models\Category::where('type', 'school')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
                 'art' => \App\Models\Category::where('type', 'art')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
-                'afro_beauty_services' => \App\Models\Category::where('type', 'afro_beauty_services')->whereNull('parent_id')->with('children.children.children')->orderBy('order')->get(),
+                // afro_beauty_services disabled for now
+            'afro_beauty_services' => collect(),
             ],
             
             'offering_types' => BusinessProfile::where('store_status', 'approved')
