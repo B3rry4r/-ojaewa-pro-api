@@ -76,27 +76,46 @@ class CategorySeeder extends Seeder
             'Accessories',
         ]);
 
-        $this->createLeafChildren($kids, [
-            'Female - Kaba and Slit',
-            'Female - Iro and Buba',
-            'Female - Dashiki Dress',
-            'Female - Kente Frock/Dress',
-            'Female - Ankara Puffy Sleeve Dress',
-            'Female - Wrap Skirt and Top Set',
-            'Female - Gambian Boubou Dress',
-            'Female - Headwrap (Gele) and Dress Set',
-            'Female - Modern Romper/Jumpsuit (Ankara)',
-            'Female - Shawl and Dress Ensemble',
-            'Male - Dashiki Shirt and Trouser Set',
-            'Male - Senegalese Kaftan (Grand Boubou)',
-            'Male - Kente Tunic and Hat Set',
-            'Male - Agbada/Sokoto Set',
-            'Male - Ankara Shirt and Shorts Set',
-            'Male - Isiagu (Lion Head) Top and Chokers',
-            'Male - Safari/Jumpsuit (Ankara)',
-            'Male - Embroidery Detailed Tunic',
-            'Male - Fila (Hat) and Matching Outfit',
-            'Male - Wrapper (Ipelé) and Top Set',
+        $kidsFemale = Category::create([
+            'name' => 'Female',
+            'slug' => 'textiles-kids-female',
+            'type' => 'textiles',
+            'parent_id' => $kids->id,
+            'order' => 1,
+        ]);
+
+        $kidsMale = Category::create([
+            'name' => 'Male',
+            'slug' => 'textiles-kids-male',
+            'type' => 'textiles',
+            'parent_id' => $kids->id,
+            'order' => 2,
+        ]);
+
+        $this->createLeafChildren($kidsFemale, [
+            'Kaba and Slit',
+            'Iro and Buba',
+            'Dashiki Dress',
+            'Kente Frock/Dress',
+            'Ankara Puffy Sleeve Dress',
+            'Wrap Skirt and Top Set',
+            'Gambian Boubou Dress',
+            'Headwrap (Gele) and Dress Set',
+            'Modern Romper/Jumpsuit (Ankara)',
+            'Shawl and Dress Ensemble',
+        ]);
+
+        $this->createLeafChildren($kidsMale, [
+            'Dashiki Shirt and Trouser Set',
+            'Senegalese Kaftan (Grand Boubou)',
+            'Kente Tunic and Hat Set',
+            'Agbada/Sokoto Set',
+            'Ankara Shirt and Shorts Set',
+            'Isiagu (Lion Head) Top and Chokers',
+            'Safari/Jumpsuit (Ankara)',
+            'Embroidery Detailed Tunic',
+            'Fila (Hat) and Matching Outfit',
+            'Wrapper (Ipelé) and Top Set',
         ]);
     }
 
@@ -210,27 +229,84 @@ class CategorySeeder extends Seeder
             'Brogues & Derbies',
         ]);
 
-        $this->createLeafChildren($kids, [
-            'Kids Male Shoes - Mojari (Embroidered Leather Shoes)',
-            'Kids Male Shoes - Kobo Kobo (Woven Slippers)',
-            'Kids Male Shoes - Beaded Leather Sandals',
-            'Kids Male Shoes - Ankara Print Slip-on Sneakers',
-            'Kids Male Shoes - Embroidered Velvet Slippers',
-            'Kids Female Shoes - Beaded Gelesko Slippers',
-            'Kids Female Shoes - Adinkra Symbol Sandals',
-            'Kids Female Shoes - Ankara Print Ballerina Flats',
-            'Kids Female Shoes - Embroidered Pom-pom Sliders',
-            'Kids Female Shoes - Sequined Jelly Shoes',
-            'Kids Male Bags - Kente Print Backpack',
-            'Kids Male Bags - Leather Pouch (Tribal Motifs)',
-            'Kids Male Bags - Ankara Drawstring Bag',
-            'Kids Male Bags - Beaded Waist Pouch',
-            'Kids Male Bags - Mudcloth Pattern Messenger Bag',
-            'Kids Female Bags - Beaded Handbag (Zulu/Maasai)',
-            'Kids Female Bags - Ankara Backpack with Pom-poms',
-            'Kids Female Bags - Embroidered Clutch',
-            'Kids Female Bags - Basket Bag (Mini)',
-            'Kids Female Bags - Shweshwe Pattern Crossbody Bag',
+        $kidsMale = Category::create([
+            'name' => 'Male',
+            'slug' => 'shoes-bags-kids-male',
+            'type' => 'shoes_bags',
+            'parent_id' => $kids->id,
+            'order' => 1,
+        ]);
+
+        $kidsFemale = Category::create([
+            'name' => 'Female',
+            'slug' => 'shoes-bags-kids-female',
+            'type' => 'shoes_bags',
+            'parent_id' => $kids->id,
+            'order' => 2,
+        ]);
+
+        $kidsMaleShoes = Category::create([
+            'name' => 'Shoes',
+            'slug' => 'shoes-bags-kids-male-shoes',
+            'type' => 'shoes_bags',
+            'parent_id' => $kidsMale->id,
+            'order' => 1,
+        ]);
+
+        $kidsMaleBags = Category::create([
+            'name' => 'Bags',
+            'slug' => 'shoes-bags-kids-male-bags',
+            'type' => 'shoes_bags',
+            'parent_id' => $kidsMale->id,
+            'order' => 2,
+        ]);
+
+        $kidsFemaleShoes = Category::create([
+            'name' => 'Shoes',
+            'slug' => 'shoes-bags-kids-female-shoes',
+            'type' => 'shoes_bags',
+            'parent_id' => $kidsFemale->id,
+            'order' => 1,
+        ]);
+
+        $kidsFemaleBags = Category::create([
+            'name' => 'Bags',
+            'slug' => 'shoes-bags-kids-female-bags',
+            'type' => 'shoes_bags',
+            'parent_id' => $kidsFemale->id,
+            'order' => 2,
+        ]);
+
+        $this->createLeafChildren($kidsMaleShoes, [
+            'Mojari (Embroidered Leather Shoes)',
+            'Kobo Kobo (Woven Slippers)',
+            'Beaded Leather Sandals',
+            'Ankara Print Slip-on Sneakers',
+            'Embroidered Velvet Slippers',
+        ]);
+
+        $this->createLeafChildren($kidsFemaleShoes, [
+            'Beaded Gelesko Slippers',
+            'Adinkra Symbol Sandals',
+            'Ankara Print Ballerina Flats',
+            'Embroidered Pom-pom Sliders',
+            'Sequined Jelly Shoes',
+        ]);
+
+        $this->createLeafChildren($kidsMaleBags, [
+            'Kente Print Backpack',
+            'Leather Pouch (Tribal Motifs)',
+            'Ankara Drawstring Bag',
+            'Beaded Waist Pouch',
+            'Mudcloth Pattern Messenger Bag',
+        ]);
+
+        $this->createLeafChildren($kidsFemaleBags, [
+            'Beaded Handbag (Zulu/Maasai)',
+            'Ankara Print Backpack with Pom-poms',
+            'Embroidered Clutch',
+            'Basket Bag (Mini)',
+            'Shweshwe Pattern Crossbody Bag',
         ]);
     }
 
