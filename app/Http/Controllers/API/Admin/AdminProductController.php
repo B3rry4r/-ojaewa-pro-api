@@ -186,12 +186,10 @@ class AdminProductController extends Controller
                     "sizes" => $product->sizes,
                     "processing_time" => [
                         "normal" => [
-                            "days" => $product->normal_processing_days,
-                            "price" => $product->normal_processing_price,
+                            "days" => $product->processing_days,
                         ],
-                        "express" => [
-                            "days" => $product->express_processing_days,
-                            "price" => $product->express_processing_price,
+                        "quick_quick" => [
+                            "days" => $product->processing_days,
                         ],
                     ],
                     "status" => $product->status,
