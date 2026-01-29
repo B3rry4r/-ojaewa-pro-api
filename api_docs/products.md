@@ -344,20 +344,23 @@ Authorization: Bearer {token}
 ### 6. Search Products
 **Endpoint:** `GET /api/products/search`  
 **Controller:** `ProductController@search`  
-**Middleware:** `auth:sanctum`  
+**Middleware:** Public (no auth)  
 **Description:** Search for approved products
 
 #### Headers
 ```
-Authorization: Bearer {token}
+Accept: application/json
 ```
 
 #### Query Parameters
 ```
 q: string (required, min:1, max:255) - Search term
-gender: string (optional, enum: male|female|unisex)
+category_id: integer (optional) - Exact category ID
+category_slug: string (optional) - Category slug, includes descendants
+type: string (optional, enum: textiles|shoes_bags|afro_beauty_products|art)
 style: string (optional, max:100)
 tribe: string (optional, max:100)
+fabric_type: string (optional, max:100)
 price_min: decimal (optional, min:0)
 price_max: decimal (optional, min:0)
 per_page: integer (optional, min:1, max:50, default:10)
@@ -365,9 +368,12 @@ per_page: integer (optional, min:1, max:50, default:10)
 
 #### Validation Rules
 - `q`: required|string|min:1|max:255
-- `gender`: sometimes|in:male,female,unisex
+- `category_id`: sometimes|integer|exists:categories,id
+- `category_slug`: sometimes|string|max:255
+- `type`: sometimes|in:textiles,shoes_bags,afro_beauty_products,art
 - `style`: sometimes|string|max:100
 - `tribe`: sometimes|string|max:100
+- `fabric_type`: sometimes|string|max:100
 - `price_min`: sometimes|numeric|min:0
 - `price_max`: sometimes|numeric|min:0
 - `per_page`: sometimes|integer|min:1|max:50

@@ -55,7 +55,7 @@ class CartController extends Controller
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
             'selected_size' => 'nullable|string',
-            'processing_time_type' => 'nullable|in:normal,express'
+            'processing_time_type' => 'nullable|in:normal,quick_quick'
         ]);
         
         $user = Auth::user();
