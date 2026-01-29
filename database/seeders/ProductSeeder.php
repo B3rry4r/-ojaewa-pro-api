@@ -162,9 +162,23 @@ class ProductSeeder extends Seeder
         }
 
         // Create products for new Kids + Afro Beauty group leaves
-        $kidsLeafCategories = Category::whereIn('type', ['textiles', 'shoes_bags', 'afro_beauty_products'])
+        // Kids leaf categories based on new structure
+        $kidsTextilesLeaves = Category::where('type', 'textiles')
+            ->whereHas('parent', fn($q) => $q->whereIn('name', ['Female', 'Male'])
+                ->whereHas('parent', fn($qq) => $qq->where('name', 'Kids')))
+            ->get();
+
+        $kidsShoesLeaves = Category::where('type', 'shoes_bags')
+            ->whereHas('parent', fn($q) => $q->whereIn('name', ['Shoes', 'Bags'])
+                ->whereHas('parent', fn($qq) => $qq->whereIn('name', ['Male', 'Female'])
+                    ->whereHas('parent', fn($qqq) => $qqq->where('name', 'Kids'))))
+            ->get();
+
+        $kidsBeautyLeaves = Category::where('type', 'afro_beauty_products')
             ->whereHas('parent', fn($q) => $q->where('name', 'Kids'))
             ->get();
+
+        $kidsLeafCategories = $kidsTextilesLeaves->merge($kidsShoesLeaves)->merge($kidsBeautyLeaves);
 
         foreach ($kidsLeafCategories as $category) {
             $seller = $sellerProfiles[$sellerIndex % $sellerProfiles->count()];

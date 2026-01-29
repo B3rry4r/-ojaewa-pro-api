@@ -157,7 +157,9 @@ class CategoryController extends Controller
             ->topLevel()
             ->orderBy('order')
             ->with(['children' => function ($query) {
-                $query->orderBy('order');
+                $query->orderBy('order')->with(['children' => function ($q) {
+                    $q->orderBy('order')->with('children');
+                }]);
             }])
             ->get();
         
