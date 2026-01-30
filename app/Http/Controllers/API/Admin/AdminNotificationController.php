@@ -18,7 +18,7 @@ class AdminNotificationController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'message' => 'required|string',
-            'type' => 'required|in:general,promotion,system,security',
+            'event' => 'required|string|max:255',
             'recipient_type' => 'required|in:all,specific,sellers',
             'user_ids' => 'required_if:recipient_type,specific|array',
             'user_ids.*' => 'exists:users,id',
@@ -43,16 +43,20 @@ class AdminNotificationController extends Controller
                 break;
         }
 
+        // Prepare payload with action_url if provided
+        $payload = $request->action_url ? ['action_url' => $request->action_url] : null;
+
         // Create notifications for each recipient
         $notificationsCreated = 0;
         foreach ($recipients as $userId) {
             Notification::create([
                 'user_id' => $userId,
+                'type' => 'push',
+                'event' => $request->event,
                 'title' => $request->title,
                 'message' => $request->message,
-                'type' => $request->type,
-                'action_url' => $request->action_url,
-                'is_read' => false,
+                'payload' => $payload,
+                'read_at' => null,
             ]);
             $notificationsCreated++;
         }
@@ -65,7 +69,7 @@ class AdminNotificationController extends Controller
                 'notification' => [
                     'title' => $request->title,
                     'message' => $request->message,
-                    'type' => $request->type,
+                    'event' => $request->event,
                     'recipient_type' => $request->recipient_type
                 ]
             ]

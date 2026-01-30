@@ -31,10 +31,13 @@ class SellerProfile extends Model
         'bank_name',
         'account_number',
         'registration_status',
+        'active',
+        'rejection_reason',
     ];
 
     protected $casts = [
         'registration_status' => 'string',
+        'active' => 'boolean',
     ];
 
     /**

@@ -20,16 +20,16 @@ class AdminBusinessController extends Controller
      * List business profiles by category, paginated
      * 
      * @param Request $request
-     * @param string $category beauty|brand|school|music
+     * @param string $category school only (art is products now)
      * @return JsonResponse
      */
     public function index(Request $request, $category): JsonResponse
     {
-        // Validate category
-        if (!in_array($category, ['beauty', 'brand', 'school', 'music'])) {
+        // Validate category - only school is a business directory now
+        if ($category !== 'school') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid business category'
+                'message' => 'Invalid business category. Only "school" is supported.'
             ], 422);
         }
         
@@ -55,17 +55,17 @@ class AdminBusinessController extends Controller
     /**
      * Show details for a specific business profile
      * 
-     * @param string $category beauty|brand|school|music
+     * @param string $category school only (art is products now)
      * @param int $id
      * @return JsonResponse
      */
     public function show($category, $id): JsonResponse
     {
-        // Validate category
-        if (!in_array($category, ['beauty', 'brand', 'school', 'music'])) {
+        // Validate category - only school is a business directory now
+        if ($category !== 'school') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid business category'
+                'message' => 'Invalid business category. Only "school" is supported.'
             ], 422);
         }
         
@@ -84,23 +84,23 @@ class AdminBusinessController extends Controller
      * Update business profile status
      * 
      * @param Request $request
-     * @param string $category beauty|brand|school|music
+     * @param string $category school only (art is products now)
      * @param int $id
      * @return JsonResponse
      */
     public function updateStatus(Request $request, $category, $id): JsonResponse
     {
-        // Validate category
-        if (!in_array($category, ['beauty', 'brand', 'school', 'music'])) {
+        // Validate category - only school is a business directory now
+        if ($category !== 'school') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid business category'
+                'message' => 'Invalid business category. Only "school" is supported.'
             ], 422);
         }
         
         $request->validate([
             'store_status' => 'required|in:pending,approved,deactivated',
-            'rejection_reason' => 'required_if:store_status,rejected|string|nullable',
+            'rejection_reason' => 'nullable|string',
         ]);
         
         $business = BusinessProfile::with('user')->where('category', $category)
