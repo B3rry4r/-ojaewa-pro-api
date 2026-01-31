@@ -45,6 +45,7 @@ class SellerProfileSeeder extends Seeder
                 'account_number' => '30' . rand(10000000, 99999999),
                 'registration_status' => 'approved',
                 'active' => true,
+                'badge' => 'heritage_artisan', // Premium test account
             ]);
             $totalCreated++;
             $this->command->info('✓ Created seller profile for test@ojaewa.com');
@@ -78,6 +79,9 @@ class SellerProfileSeeder extends Seeder
             ],
         ];
 
+        // Badge variety for test data
+        $badges = ['certified_authentic', 'heritage_artisan', 'sustainable_innovator', 'design_excellence'];
+
         foreach ($sellerData as $index => $data) {
             $user = User::where('email', $data['email'])->first();
             if ($user && !SellerProfile::where('user_id', $user->id)->exists()) {
@@ -98,6 +102,7 @@ class SellerProfileSeeder extends Seeder
                     'account_number' => rand(1000000000, 9999999999),
                     'registration_status' => 'approved',
                     'active' => true,
+                    'badge' => $badges[$index % count($badges)], // Assign different badges for testing
                 ]);
                 $totalCreated++;
             }

@@ -17,6 +17,8 @@ class SellerProfileFactory extends Factory
      */
     public function definition(): array
     {
+        $status = fake()->randomElement(['pending', 'approved', 'rejected']);
+        
         return [
             'country' => fake()->country(),
             'state' => fake()->state(),
@@ -33,7 +35,10 @@ class SellerProfileFactory extends Factory
             'business_logo' => fake()->optional()->filePath(),
             'bank_name' => fake()->randomElement(['First Bank', 'GTBank', 'Access Bank', 'UBA', 'Zenith Bank']),
             'account_number' => fake()->numerify('##########'),
-            'registration_status' => fake()->randomElement(['pending', 'approved', 'rejected']),
+            'registration_status' => $status,
+            'badge' => $status === 'approved' 
+                ? fake()->randomElement(['certified_authentic', 'heritage_artisan', 'sustainable_innovator', 'design_excellence'])
+                : null, // Only approved sellers get badges
         ];
     }
 }
