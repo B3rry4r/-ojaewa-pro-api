@@ -107,6 +107,7 @@ class AdminSellerController extends Controller
         $request->validate([
             "status" => "required|in:approved,rejected",
             "rejection_reason" => "required_if:status,rejected|string|nullable",
+            "badge" => "nullable|in:certified_authentic,heritage_artisan,sustainable_innovator,design_excellence",
         ]);
 
         $seller = SellerProfile::with('user')->findOrFail($id);
@@ -120,6 +121,11 @@ class AdminSellerController extends Controller
             $request->has("rejection_reason")
         ) {
             $seller->rejection_reason = $request->rejection_reason;
+        }
+
+        // Set badge if provided, or default to certified_authentic if approved
+        if ($newStatus === "approved") {
+            $seller->badge = $request->input('badge', 'certified_authentic');
         }
 
         $seller->save();
@@ -245,6 +251,46 @@ class AdminSellerController extends Controller
             "status" => "success",
             "message" => "Seller profile {$status} successfully",
             "data" => $seller,
+        ]);
+    }
+
+    /**
+     * Update seller badge
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function updateBadge(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            "badge" => "required|in:certified_authentic,heritage_artisan,sustainable_innovator,design_excellence",
+        ]);
+
+        $seller = SellerProfile::findOrFail($id);
+        
+        // Only approved sellers can have badges updated
+        if ($seller->registration_status !== 'approved') {
+            return response()->json([
+                "status" => "error",
+                "message" => "Badge can only be assigned to approved sellers",
+            ], 422);
+        }
+
+        $oldBadge = $seller->badge;
+        $seller->badge = $request->badge;
+        $seller->save();
+
+        return response()->json([
+            "status" => "success",
+            "message" => "Seller badge updated successfully",
+            "data" => [
+                "seller_id" => $seller->id,
+                "business_name" => $seller->business_name,
+                "old_badge" => $oldBadge,
+                "new_badge" => $seller->badge,
+                "updated_at" => $seller->updated_at,
+            ],
         ]);
     }
 }

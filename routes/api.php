@@ -367,6 +367,10 @@ Route::middleware(["auth:sanctum", "admin"])
             App\Http\Controllers\API\Admin\AdminSellerController::class,
             "updateStatus",
         ]);
+        Route::patch("/seller/{id}/badge", [
+            App\Http\Controllers\API\Admin\AdminSellerController::class,
+            "updateBadge",
+        ]);
 
         Route::get("/pending/products", [
             App\Http\Controllers\API\Admin\AdminProductController::class,

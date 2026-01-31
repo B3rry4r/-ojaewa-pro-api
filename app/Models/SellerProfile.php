@@ -33,6 +33,7 @@ class SellerProfile extends Model
         'registration_status',
         'active',
         'rejection_reason',
+        'badge',
     ];
 
     protected $casts = [
